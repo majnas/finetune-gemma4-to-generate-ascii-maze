@@ -1,0 +1,31 @@
+# Shared config for the gemma4_*.py scripts.
+#
+# Usage:
+#   python gemma4_train.py  --config fixed4x4/config.yaml --gpu 3
+#   python gemma4_export.py --config fixed4x4/config.yaml --gpu 3
+#   python gemma4_gguf.py   --config fixed4x4/config.yaml --gpu 3
+#
+# Keys match each script's argparse dest names (long flag name, dashes -> underscores).
+# Each script only picks up the keys it recognizes and ignores the rest, so this
+# file can hold settings for every script in the pipeline.
+# Any flag also passed on the command line overrides the value set here.
+
+# --- gemma4_train.py ---
+output_dir: fixed4x4/experiment/lora
+max_seq_length: 1024
+per_device_train_batch_size: 32
+gradient_accumulation_steps: 1
+num_train_epochs: 2
+gpu: 3
+
+# --- gemma4_export.py ---
+save_merged: true
+load_in_4bit: false
+lora_path: fixed4x4/finetune/lora
+merged_dir: fixed4x4/finetune/merged
+
+# --- gemma4_gguf.py ---
+save_gguf: true
+quantization_method: F16
+gguf_dir: fixed4x4/finetune/gguf
+# lora_path / load_in_4bit above are shared with gemma4_export.py
