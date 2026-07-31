@@ -1,0 +1,49 @@
+import random
+
+from .config import MAZE_CONFIG
+from ..maze.endpoints import choose_endpoints
+from ..maze.generator import generate_maze
+from ..maze.render import render_maze
+from ..maze.solver import solve_maze
+from .prompts import build_prompt
+
+
+def build_sample(seed: int) -> dict:
+    """Generate one training record: a user prompt paired with the
+    assistant maze completion, plus the ground-truth metadata needed
+    later to validate a model's own output."""
+    rng = random.Random(seed)
+
+    size = rng.choice(MAZE_CONFIG.sizes)
+    rows = columns = size
+
+    maze = generate_maze(rows=rows, columns=columns, rng=rng)
+    start, end = choose_endpoints(rows, columns, rng, MAZE_CONFIG.random_endpoints)
+
+    prompt = build_prompt(rows, columns, start, end)
+    maze_text = render_maze(maze, start, end)
+    completion = f"```\n{maze_text}\n```"
+
+    meta = {
+        "seed": seed,
+        "rows": rows,
+        "columns": columns,
+        "start": list(start),
+        "end": list(end),
+    }
+
+    if MAZE_CONFIG.include_solution:
+        cell_path, direction_path = solve_maze(maze, start, end)
+        meta["path_cells"] = [list(cell) for cell in cell_path]
+        meta["path_directions"] = direction_path
+        completion += "\n\nPath: " + ", ".join(direction_path)
+
+    return {
+        # gemma4_train.py's data prep (unsloth's standardize_data_formats)
+        # requires this field to be named "conversations", not "messages".
+        "conversations": [
+            {"role": "user", "content": prompt},
+            {"role": "assistant", "content": completion},
+        ],
+        "meta": meta,
+    }

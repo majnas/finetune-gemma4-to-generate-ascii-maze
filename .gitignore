@@ -1,0 +1,5 @@
+.env
+__pycache__/
+*.pyc
+unsloth_compiled_cache/
+asciimaze/fixed4x4/finetune/
