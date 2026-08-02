@@ -122,78 +122,14 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
       gap: 8px;
     }}
 
-    .maze-card {{
-      min-width: 0;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 9px;
-      background: transparent;
-    }}
-
-    .maze-title,
-    .maze-status {{
-      background: #171e29;
-    }}
-
-    .maze-title {{
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      padding: 6px 8px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 11px;
-      font-weight: 700;
-    }}
-
-    .rotation {{
-      color: #91a0b4;
-      font-size: 9px;
-      font-weight: 500;
-      white-space: nowrap;
-    }}
-
     .maze-view {{
       position: relative;
+      min-width: 0;
       width: 100%;
       min-height: 112px;
       aspect-ratio: 4 / 3;
+      overflow: hidden;
       background: transparent;
-      cursor: default;
-      touch-action: none;
-    }}
-
-    .maze-status {{
-      display: flex;
-      gap: 8px;
-      min-height: 22px;
-      padding: 5px 8px 7px;
-      color: #cbd5e1;
-      font-size: 9px;
-    }}
-
-    .status-item {{
-      white-space: nowrap;
-    }}
-
-    .missing {{
-      color: #f5b7be;
-    }}
-
-    .dot {{
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      margin-right: 4px;
-      border-radius: 50%;
-    }}
-
-    .start-dot {{
-      background: #39e879;
-    }}
-
-    .exit-dot {{
-      background: #ff5267;
     }}
 
     @media (max-width: 1700px) {{
@@ -254,19 +190,19 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
 
   <script type="module">
     import * as THREE from "three";
-    import {{ OrbitControls }} from "three/addons/controls/OrbitControls.js";
 
     const SAMPLE_DATA = {samples_json};
 
-    const COLS = 6;
-    const ROWS = 4;
     const CELL = 1.45;
     const WALL_HEIGHT = 1.15;
     const WALL_THICKNESS = 0.32;
 
-    const MAZE_WIDTH = COLS * CELL;
-    const MAZE_DEPTH = ROWS * CELL;
-    const ORTHO_HALF_HEIGHT = 6.7;
+    // Camera framing padding: multiplies each maze's circumscribed radius
+    // so continuous auto-rotation never clips a corner out of view,
+    // regardless of that sample's row/column count.
+    const ORTHO_PADDING = 1.3;
+    const MIN_ORTHO_HALF_HEIGHT = 3.2;
+    const MIN_SHADOW_EXTENT = 9;
 
     // Slow automatic in-plane rotation for every maze.
     const AUTO_ROTATE_MIN_DPS = 4.0;
@@ -300,18 +236,6 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
       WALL_THICKNESS,
       WALL_HEIGHT,
       CELL + WALL_THICKNESS
-    );
-
-    const floorGeometry = new THREE.BoxGeometry(
-      MAZE_WIDTH + 0.10,
-      0.14,
-      MAZE_DEPTH + 0.10
-    );
-
-    const baseGeometry = new THREE.BoxGeometry(
-      MAZE_WIDTH + 0.72,
-      0.28,
-      MAZE_DEPTH + 0.72
     );
 
     const markerRingGeometry = new THREE.TorusGeometry(
@@ -357,12 +281,24 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
 
     const identityMatrix = new THREE.Matrix4();
 
-    function localX(gridX) {{
-      return (gridX - COLS / 2) * CELL;
+    function localX(gridX, cols) {{
+      return (gridX - cols / 2) * CELL;
     }}
 
-    function localZ(gridY) {{
-      return (gridY - ROWS / 2) * CELL;
+    function localZ(gridY, rows) {{
+      return (gridY - rows / 2) * CELL;
+    }}
+
+    function countChar(str, ch) {{
+      let count = 0;
+
+      for (const c of str) {{
+        if (c === ch) {{
+          count += 1;
+        }}
+      }}
+
+      return count;
     }}
 
     function parseMaze(mazeText) {{
@@ -373,27 +309,52 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
       const borderLines = lines.filter((line) => line.includes("+"));
       const cellLines = lines.filter((line) => /^\\s*\\d+\\s*\\|/.test(line));
 
-      if (borderLines.length < 5 || cellLines.length < 4) {{
+      if (borderLines.length < 2 || cellLines.length < 1) {{
         throw new Error(
-          `Expected 5 border lines and 4 cell lines, received ` +
+          `Expected at least 2 border lines and 1 cell line, received ` +
           `${{borderLines.length}} and ${{cellLines.length}}.`
         );
       }}
 
-      const h = Array.from({{ length: 5 }}, () => Array(6).fill(0));
-      const v = Array.from({{ length: 4 }}, () => Array(7).fill(0));
+      const trimmedBorders = borderLines.map((line) => {{
+        const firstPlus = line.indexOf("+");
+        return firstPlus >= 0 ? line.slice(firstPlus) : line;
+      }});
+
+      const trimmedCells = cellLines.map((line) => {{
+        const firstPipe = line.indexOf("|");
+        return firstPipe >= 0 ? line.slice(firstPipe) : line;
+      }});
+
+      // Column count is derived per maze (rather than assumed) so mazes of
+      // any width parse correctly; take the widest line to tolerate a
+      // ragged/malformed row without truncating the rest of the maze.
+      const cols = Math.max(
+        1,
+        ...trimmedBorders.map((line) => countChar(line, "+") - 1),
+        ...trimmedCells.map((line) => countChar(line, "|") - 1)
+      );
+
+      const rows = cellLines.length;
+      const boundaryRows = borderLines.length;
+
+      const h = Array.from(
+        {{ length: boundaryRows }},
+        () => Array(cols).fill(0)
+      );
+
+      const v = Array.from(
+        {{ length: rows }},
+        () => Array(cols + 1).fill(0)
+      );
 
       let start = null;
       let exit = null;
 
-      for (let boundary = 0; boundary < 5; boundary += 1) {{
-        const fullLine = borderLines[boundary];
-        const firstPlus = fullLine.indexOf("+");
-        const mazePart = firstPlus >= 0
-          ? fullLine.slice(firstPlus)
-          : fullLine;
+      for (let boundary = 0; boundary < boundaryRows; boundary += 1) {{
+        const mazePart = trimmedBorders[boundary];
 
-        for (let col = 0; col < 6; col += 1) {{
+        for (let col = 0; col < cols; col += 1) {{
           const segment = mazePart.slice(
             col * 4 + 1,
             col * 4 + 4
@@ -403,19 +364,15 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
         }}
       }}
 
-      for (let row = 0; row < 4; row += 1) {{
-        const fullLine = cellLines[row];
-        const firstPipe = fullLine.indexOf("|");
-        const mazePart = firstPipe >= 0
-          ? fullLine.slice(firstPipe)
-          : fullLine;
+      for (let row = 0; row < rows; row += 1) {{
+        const mazePart = trimmedCells[row];
 
-        for (let boundary = 0; boundary < 7; boundary += 1) {{
+        for (let boundary = 0; boundary <= cols; boundary += 1) {{
           v[row][boundary] =
             mazePart[boundary * 4] === "|" ? 1 : 0;
         }}
 
-        for (let col = 0; col < 6; col += 1) {{
+        for (let col = 0; col < cols; col += 1) {{
           const content = mazePart.slice(
             col * 4 + 1,
             col * 4 + 4
@@ -431,19 +388,19 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
         }}
 
         // Preserve malformed model outputs that place S or E to the right
-        // of the nominal six-column boundary.
-        const overflow = mazePart.slice(24);
+        // of the maze's own detected column boundary.
+        const overflow = mazePart.slice(cols * 4);
 
         if (!start && overflow.includes("S")) {{
-          start = {{ col: 6.15, row }};
+          start = {{ col: cols + 0.15, row }};
         }}
 
         if (!exit && overflow.includes("E")) {{
-          exit = {{ col: 6.15, row }};
+          exit = {{ col: cols + 0.15, row }};
         }}
       }}
 
-      return {{ h, v, start, exit }};
+      return {{ h, v, start, exit, cols, rows }};
     }}
 
     function createLabelTexture(text) {{
@@ -478,7 +435,7 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
       depthTest: false
     }});
 
-    function createMarker(group, marker, type) {{
+    function createMarker(group, marker, type, cols, rows) {{
       if (!marker) {{
         return null;
       }}
@@ -495,9 +452,9 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
       const markerGroup = new THREE.Group();
 
       markerGroup.position.set(
-        localX(marker.col + 0.5),
+        localX(marker.col + 0.5, cols),
         0,
-        localZ(marker.row + 0.5)
+        localZ(marker.row + 0.5, rows)
       );
 
       const ring = new THREE.Mesh(
@@ -534,9 +491,9 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
         row.forEach((hasWall, col) => {{
           if (hasWall) {{
             horizontalPositions.push([
-              localX(col + 0.5),
+              localX(col + 0.5, parsed.cols),
               WALL_HEIGHT / 2,
-              localZ(boundary)
+              localZ(boundary, parsed.rows)
             ]);
           }}
         }});
@@ -546,9 +503,9 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
         row.forEach((hasWall, boundary) => {{
           if (hasWall) {{
             verticalPositions.push([
-              localX(boundary),
+              localX(boundary, parsed.cols),
               WALL_HEIGHT / 2,
-              localZ(rowIndex + 0.5)
+              localZ(rowIndex + 0.5, parsed.rows)
             ]);
           }}
         }});
@@ -596,6 +553,21 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
     function createMazeObject(parsed) {{
       const group = new THREE.Group();
 
+      const mazeWidth = parsed.cols * CELL;
+      const mazeDepth = parsed.rows * CELL;
+
+      const baseGeometry = new THREE.BoxGeometry(
+        mazeWidth + 0.72,
+        0.28,
+        mazeDepth + 0.72
+      );
+
+      const floorGeometry = new THREE.BoxGeometry(
+        mazeWidth + 0.10,
+        0.14,
+        mazeDepth + 0.10
+      );
+
       const base = new THREE.Mesh(
         baseGeometry,
         baseMaterial
@@ -619,19 +591,25 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
       const startOrb = createMarker(
         group,
         parsed.start,
-        "start"
+        "start",
+        parsed.cols,
+        parsed.rows
       );
 
       const exitOrb = createMarker(
         group,
         parsed.exit,
-        "exit"
+        "exit",
+        parsed.cols,
+        parsed.rows
       );
 
       return {{
         group,
         startOrb,
-        exitOrb
+        exitOrb,
+        mazeWidth,
+        mazeDepth
       }};
     }}
 
@@ -657,8 +635,14 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
       return THREE.MathUtils.degToRad(speedDps * direction);
     }}
 
-    function updateOrthographicCamera(camera, aspect) {{
-      const halfHeight = ORTHO_HALF_HEIGHT;
+    function updateOrthographicCamera(camera, aspect, baseHalfHeight) {{
+      // baseHalfHeight already covers the maze's full circumscribed radius.
+      // When the card is taller than it is wide, grow the vertical half-size
+      // so the width requirement (halfHeight * aspect) still clears it.
+      const halfHeight = aspect < 1
+        ? baseHalfHeight / Math.max(aspect, 0.01)
+        : baseHalfHeight;
+
       const halfWidth = halfHeight * Math.max(aspect, 0.01);
 
       camera.left = -halfWidth;
@@ -666,18 +650,6 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
       camera.top = halfHeight;
       camera.bottom = -halfHeight;
       camera.updateProjectionMatrix();
-    }}
-
-    function makeStatus(parsed) {{
-      const startStatus = parsed.start
-        ? `<span class="status-item"><i class="dot start-dot"></i>Start</span>`
-        : `<span class="status-item missing">S missing</span>`;
-
-      const exitStatus = parsed.exit
-        ? `<span class="status-item"><i class="dot exit-dot"></i>Exit</span>`
-        : `<span class="status-item missing">E missing</span>`;
-
-      return startStatus + exitStatus;
     }}
 
     function buildViewer(sample, index) {{
@@ -690,57 +662,35 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
           `Failed to parse sample ${{sample.number}}`,
           error
         );
-
-        const errorCard = document.createElement("section");
-        errorCard.className = "maze-card";
-        errorCard.innerHTML = `
-          <div class="maze-title">
-            <span>Sample ${{sample.number}}/${{sample.total}}</span>
-          </div>
-          <div class="maze-view"></div>
-          <div class="maze-status">
-            <span class="missing">Parse error</span>
-          </div>
-        `;
-        document.getElementById("mazeGrid").appendChild(errorCard);
         return;
       }}
 
       const angleDegrees = deterministicAngle(sample.number);
       const rotationSpeed = deterministicRotationSpeed(sample.number);
 
-      const card = document.createElement("section");
-      card.className = "maze-card";
-
-      const title = document.createElement("div");
-      title.className = "maze-title";
-      title.innerHTML = `
-        <span>Sample ${{sample.number}}/${{sample.total}}</span>
-        <span class="rotation">
-          ${{rotationSpeed >= 0 ? "↻" : "↺"}}
-          ${{Math.abs(
-            THREE.MathUtils.radToDeg(rotationSpeed)
-          ).toFixed(1)}}°/s
-        </span>
-      `;
-
       const view = document.createElement("div");
       view.className = "maze-view";
-
-      const status = document.createElement("div");
-      status.className = "maze-status";
-      status.innerHTML = makeStatus(parsed);
-
-      card.append(title, view, status);
-      document.getElementById("mazeGrid").appendChild(card);
+      document.getElementById("mazeGrid").appendChild(view);
 
       const scene = new THREE.Scene();
 
+      const mazeWidth = parsed.cols * CELL;
+      const mazeDepth = parsed.rows * CELL;
+
+      const boundingRadius = Math.sqrt(
+        (mazeWidth / 2) ** 2 + (mazeDepth / 2) ** 2
+      );
+
+      const baseHalfHeight = Math.max(
+        boundingRadius * ORTHO_PADDING,
+        MIN_ORTHO_HALF_HEIGHT
+      );
+
       const camera = new THREE.OrthographicCamera(
-        -ORTHO_HALF_HEIGHT,
-        ORTHO_HALF_HEIGHT,
-        ORTHO_HALF_HEIGHT,
-        -ORTHO_HALF_HEIGHT,
+        -baseHalfHeight,
+        baseHalfHeight,
+        baseHalfHeight,
+        -baseHalfHeight,
         0.1,
         100
       );
@@ -748,15 +698,6 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
       camera.position.set(0, 20, 0.001);
       camera.up.set(0, 0, -1);
       camera.lookAt(0, 0, 0);
-
-      const controls = new OrbitControls(camera, view);
-      controls.target.set(0, 0, 0);
-      controls.enableDamping = true;
-      controls.enablePan = false;
-      controls.enableRotate = false;
-      controls.enableZoom = true;
-      controls.minZoom = 0.65;
-      controls.maxZoom = 2.5;
 
       scene.add(
         new THREE.HemisphereLight(
@@ -771,13 +712,18 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
         3.0
       );
 
+      const shadowExtent = Math.max(
+        boundingRadius * 1.2,
+        MIN_SHADOW_EXTENT
+      );
+
       keyLight.position.set(8, 13, 9);
       keyLight.castShadow = true;
       keyLight.shadow.mapSize.set(512, 512);
-      keyLight.shadow.camera.left = -9;
-      keyLight.shadow.camera.right = 9;
-      keyLight.shadow.camera.top = 9;
-      keyLight.shadow.camera.bottom = -9;
+      keyLight.shadow.camera.left = -shadowExtent;
+      keyLight.shadow.camera.right = shadowExtent;
+      keyLight.shadow.camera.top = shadowExtent;
+      keyLight.shadow.camera.bottom = -shadowExtent;
       scene.add(keyLight);
 
       const maze = createMazeObject(parsed);
@@ -791,7 +737,7 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
         element: view,
         scene,
         camera,
-        controls,
+        baseHalfHeight,
         startOrb: maze.startOrb,
         exitOrb: maze.exitOrb,
         mazeGroup: maze.group,
@@ -866,7 +812,8 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
 
       updateOrthographicCamera(
         viewer.camera,
-        rect.width / rect.height
+        rect.width / rect.height,
+        viewer.baseHalfHeight
       );
 
       // Rotate around the maze group's local origin, which is its centre.
@@ -894,7 +841,6 @@ def generate_html(samples: list[dict[str, Any]], columns: int) -> str:
           ) * 0.05;
       }}
 
-      viewer.controls.update();
       renderer.render(
         viewer.scene,
         viewer.camera
