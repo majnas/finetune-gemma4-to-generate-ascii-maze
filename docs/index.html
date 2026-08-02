@@ -54,6 +54,21 @@
       font-size: 13px;
     }
 
+    .header p.header-links {
+      margin-top: 10px;
+    }
+
+    .header-links a {
+      color: #4d8dff;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .header-links a:hover {
+      text-decoration: underline;
+    }
+
     .phase-tabs {
       display: flex;
       justify-content: center;
@@ -225,15 +240,19 @@
 <body>
   <div class="page">
     <header class="header">
-      <h1>ASCII Maze Samples</h1>
+      <h1>Gemma-4 (E2B) ASCII-Maze Finetune</h1>
       <p>
-        Browse model-generated mazes across four fine-tuning phases —
-        <code>fixed4x4</code> (fixed 4×4), <code>varNxN</code> (variable square,
-        3×3–9×9), <code>varNxM</code> (variable rectangular), and
-        <code>varNxM_rndSE</code> (variable rectangular, random start/exit).
-        Pick a phase, then drag to orbit and scroll to zoom the centered maze,
-        click a side preview, use the arrows, or press ←/→ to browse its
-        samples.
+        Finetuning <code>unsloth/gemma-4-E2B-it</code> on a local ASCII-maze
+        dataset with Unsloth + LoRA, then exporting, converting, and running
+        the result. This page is an interactive 3D gallery of the
+        fine-tuned model's generated mazes.
+      </p>
+      <p class="header-links">
+        <a
+          href="https://github.com/majnas/finetune-gemma4-to-generate-ascii-maze"
+          target="_blank"
+          rel="noopener"
+        >GitHub repo</a>
       </p>
     </header>
 
@@ -289,6 +308,7 @@
     const AUTO_ROTATE_MAX_DPS = 7.0;
 
     const PHASES = ["fixed4x4", "varNxN", "varNxM", "varNxM_rndSE"];
+    const DEFAULT_PHASE = "varNxM_rndSE";
 
     // Shared geometry and materials keep memory and draw-call overhead low
     // across the three viewports and every sample they ever display.
@@ -752,7 +772,7 @@
       controls.panSpeed = 0.7;
       controls.minPolarAngle = THREE.MathUtils.degToRad(12);
       controls.maxPolarAngle = THREE.MathUtils.degToRad(85);
-      controls.autoRotate = false;
+      // autoRotate/autoRotateSpeed are set per-sample in loadCenterViewport.
 
       return {
         renderer,
@@ -832,6 +852,16 @@
       centerViewport.controls.target.set(0, 0, 0);
       centerViewport.controls.minDistance = boundingRadius * 1.1;
       centerViewport.controls.maxDistance = boundingRadius * 4.5;
+
+      // Spin by default, same per-sample speed/direction as the idle side
+      // previews; OrbitControls automatically pauses this while the user
+      // is dragging and resumes it once they let go.
+      const orbitDegreesPerSecond = THREE.MathUtils.radToDeg(
+        deterministicRotationSpeed(sample.number)
+      );
+      centerViewport.controls.autoRotate = true;
+      centerViewport.controls.autoRotateSpeed = orbitDegreesPerSecond / 6;
+
       centerViewport.controls.update();
     }
 
@@ -852,9 +882,19 @@
     const centerViewport = createCenterViewport(canvasCenter);
     const rightViewport = createSideViewport(canvasRight);
 
+    const DEFAULT_SAMPLE_NUMBER = 10;
+
     const samplesCache = {};
     let currentPhase = null;
     let centerIndex = 0;
+
+    function defaultIndexFor(samples) {
+      const index = samples.findIndex(
+        (sample) => sample.number === DEFAULT_SAMPLE_NUMBER
+      );
+
+      return index >= 0 ? index : 0;
+    }
 
     function pulseCarousel() {
       carouselRow.classList.remove("pulse");
@@ -917,7 +957,7 @@
       }
 
       currentPhase = phase;
-      centerIndex = 0;
+      centerIndex = defaultIndexFor(samplesCache[phase]);
       rebuildCarousel();
     }
 
@@ -977,7 +1017,7 @@
       viewport.renderer.render(viewport.scene, viewport.camera);
     }
 
-    function updateCenterViewport(elapsed) {
+    function updateCenterViewport(elapsed, deltaSeconds) {
       if (!centerViewport.group) {
         return;
       }
@@ -1007,25 +1047,31 @@
           0.29 + Math.sin(elapsed * 2.4 + Math.PI) * 0.05;
       }
 
-      centerViewport.controls.update();
+      // Pass real elapsed time explicitly: OrbitControls.update()'s no-arg
+      // fallback assumes a fixed 60 calls/sec and drifts if the actual
+      // frame rate differs (e.g. a throttled/background tab), which would
+      // make autoRotate stall relative to wall-clock time.
+      centerViewport.controls.update(deltaSeconds);
       centerViewport.renderer.render(centerViewport.scene, centerViewport.camera);
     }
 
     const clock = new THREE.Clock();
+    let elapsedSeconds = 0;
 
     function animate() {
-      const elapsed = clock.getElapsedTime();
+      const deltaSeconds = clock.getDelta();
+      elapsedSeconds += deltaSeconds;
 
-      updateSideViewport(leftViewport, elapsed);
-      updateCenterViewport(elapsed);
-      updateSideViewport(rightViewport, elapsed);
+      updateSideViewport(leftViewport, elapsedSeconds);
+      updateCenterViewport(elapsedSeconds, deltaSeconds);
+      updateSideViewport(rightViewport, elapsedSeconds);
 
       requestAnimationFrame(animate);
     }
 
-    loadPhase(PHASES[0]).catch((error) => {
+    loadPhase(DEFAULT_PHASE).catch((error) => {
       console.error(error);
-      caption.textContent = `Failed to load ${PHASES[0]}`;
+      caption.textContent = `Failed to load ${DEFAULT_PHASE}`;
     });
 
     animate();
