@@ -24,7 +24,7 @@
     }
 
     .page {
-      max-width: 1560px;
+      max-width: 1780px;
       margin: 0 auto;
     }
 
@@ -134,8 +134,9 @@
     }
 
     .slot-center {
-      flex: 0 0 60%;
-      max-width: 1280px;
+      flex: 1 1 650px;
+      min-width: 320px;
+      max-width: 950px;
       box-shadow: 0 0 0 1px #2b384b, 0 18px 40px rgba(0, 0, 0, 0.45);
     }
 
@@ -148,7 +149,7 @@
     }
 
     .slot-side {
-      flex: 0 0 24%;
+      flex: 0 0 150px;
       opacity: 0.55;
       filter: brightness(0.75) saturate(0.85);
       transform: scale(0.92);
@@ -216,6 +217,15 @@
       color: #b9c4d3;
     }
 
+    /* Drop the outermost thumbnail pair as the viewport narrows, instead
+       of shrinking every thumbnail below its intended size. */
+    @media (max-width: 1400px) {
+      .slot-side[data-nav="2"],
+      .slot-side[data-nav="-2"] {
+        display: none;
+      }
+    }
+
     @media (max-width: 780px) {
       .slot-side {
         display: none;
@@ -223,6 +233,7 @@
 
       .slot-center {
         flex-basis: 92%;
+        max-width: none;
       }
     }
   </style>
@@ -267,18 +278,26 @@
       <button class="nav-arrow" id="navLeft" aria-label="Previous sample">‹</button>
 
       <div class="carousel-row" id="carouselRow">
-        <div class="slot slot-side" id="slotLeft">
-          <canvas id="canvasLeft"></canvas>
-          <div class="slot-label" id="labelLeft"></div>
+        <div class="slot slot-side" data-nav="-2">
+          <canvas id="canvasLeft2"></canvas>
+          <div class="slot-label" id="labelLeft2"></div>
+        </div>
+        <div class="slot slot-side" data-nav="-1">
+          <canvas id="canvasLeft1"></canvas>
+          <div class="slot-label" id="labelLeft1"></div>
         </div>
 
         <div class="slot slot-center" id="slotCenter">
           <canvas id="canvasCenter"></canvas>
         </div>
 
-        <div class="slot slot-side" id="slotRight">
-          <canvas id="canvasRight"></canvas>
-          <div class="slot-label" id="labelRight"></div>
+        <div class="slot slot-side" data-nav="1">
+          <canvas id="canvasRight1"></canvas>
+          <div class="slot-label" id="labelRight1"></div>
+        </div>
+        <div class="slot slot-side" data-nav="2">
+          <canvas id="canvasRight2"></canvas>
+          <div class="slot-label" id="labelRight2"></div>
         </div>
       </div>
 
@@ -303,15 +322,18 @@
     const MIN_ORTHO_HALF_HEIGHT = 3.2;
     const MIN_SHADOW_EXTENT = 9;
 
-    // Slow automatic in-plane rotation for the two idle side previews.
+    // Slow automatic in-plane rotation for the idle side previews.
     const AUTO_ROTATE_MIN_DPS = 4.0;
     const AUTO_ROTATE_MAX_DPS = 7.0;
+
+    // Idle previews shown on each side of the interactive center maze.
+    const SIDE_COUNT = 2;
 
     const PHASES = ["fixed4x4", "varNxN", "varNxM", "varNxM_rndSE"];
     const DEFAULT_PHASE = "varNxM_rndSE";
 
     // Shared geometry and materials keep memory and draw-call overhead low
-    // across the three viewports and every sample they ever display.
+    // across every viewport and every sample they ever display.
     const horizontalWallGeometry = new THREE.BoxGeometry(
       CELL + WALL_THICKNESS,
       WALL_HEIGHT,
@@ -865,22 +887,35 @@
       centerViewport.controls.update();
     }
 
-    const canvasLeft = document.getElementById("canvasLeft");
     const canvasCenter = document.getElementById("canvasCenter");
-    const canvasRight = document.getElementById("canvasRight");
-
-    const slotLeft = document.getElementById("slotLeft");
-    const slotRight = document.getElementById("slotRight");
-    const labelLeft = document.getElementById("labelLeft");
-    const labelRight = document.getElementById("labelRight");
     const caption = document.getElementById("caption");
     const carouselRow = document.getElementById("carouselRow");
     const navLeft = document.getElementById("navLeft");
     const navRight = document.getElementById("navRight");
 
-    const leftViewport = createSideViewport(canvasLeft);
+    // sideSlots[i] (i = 0..SIDE_COUNT-1) holds the viewport/label for the
+    // preview offset (i + 1) samples from the center, on each side.
+    function createSideSlots(side) {
+      return Array.from({ length: SIDE_COUNT }, (_, i) => {
+        const offset = i + 1;
+
+        return {
+          viewport: createSideViewport(
+            document.getElementById(`canvas${side}${offset}`)
+          ),
+          label: document.getElementById(`label${side}${offset}`)
+        };
+      });
+    }
+
+    const leftSlots = createSideSlots("Left");
+    const rightSlots = createSideSlots("Right");
     const centerViewport = createCenterViewport(canvasCenter);
-    const rightViewport = createSideViewport(canvasRight);
+
+    document.querySelectorAll(".slot-side[data-nav]").forEach((element) => {
+      const offset = Number(element.dataset.nav);
+      element.addEventListener("click", () => goTo(offset));
+    });
 
     const DEFAULT_SAMPLE_NUMBER = 10;
 
@@ -907,16 +942,25 @@
       const samples = samplesCache[currentPhase];
       const total = samples.length;
 
-      const leftSample = samples[(centerIndex - 1 + total) % total];
+      leftSlots.forEach((slot, i) => {
+        const offset = i + 1;
+        const sample = samples[(centerIndex - offset + total) % total];
+
+        loadSideViewport(slot.viewport, sample);
+        slot.label.textContent = `#${sample.number}`;
+      });
+
+      rightSlots.forEach((slot, i) => {
+        const offset = i + 1;
+        const sample = samples[(centerIndex + offset) % total];
+
+        loadSideViewport(slot.viewport, sample);
+        slot.label.textContent = `#${sample.number}`;
+      });
+
       const centerSample = samples[centerIndex];
-      const rightSample = samples[(centerIndex + 1) % total];
-
-      loadSideViewport(leftViewport, leftSample);
       loadCenterViewport(centerSample);
-      loadSideViewport(rightViewport, rightSample);
 
-      labelLeft.textContent = `#${leftSample.number}`;
-      labelRight.textContent = `#${rightSample.number}`;
       caption.textContent =
         `${currentPhase} · sample ${centerSample.number} / ${centerSample.total}`;
 
@@ -974,8 +1018,6 @@
       });
     });
 
-    slotLeft.addEventListener("click", () => goTo(-1));
-    slotRight.addEventListener("click", () => goTo(1));
     navLeft.addEventListener("click", () => goTo(-1));
     navRight.addEventListener("click", () => goTo(1));
 
@@ -1062,9 +1104,9 @@
       const deltaSeconds = clock.getDelta();
       elapsedSeconds += deltaSeconds;
 
-      updateSideViewport(leftViewport, elapsedSeconds);
+      leftSlots.forEach((slot) => updateSideViewport(slot.viewport, elapsedSeconds));
+      rightSlots.forEach((slot) => updateSideViewport(slot.viewport, elapsedSeconds));
       updateCenterViewport(elapsedSeconds, deltaSeconds);
-      updateSideViewport(rightViewport, elapsedSeconds);
 
       requestAnimationFrame(animate);
     }
