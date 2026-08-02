@@ -14,7 +14,8 @@
     body {
       margin: 0;
       min-height: 100%;
-      background: #0f141d;
+      background:
+        radial-gradient(circle at 50% -15%, #1b2533 0%, #0b0f15 45%, #050608 100%);
       color: #ffffff;
       font-family: Inter, Arial, sans-serif;
     }
@@ -124,7 +125,8 @@
       aspect-ratio: 4 / 3;
       border-radius: 12px;
       overflow: hidden;
-      background: #111823;
+      background:
+        radial-gradient(circle at 50% 30%, #141b24 0%, #080a0e 68%, #040506 100%);
     }
 
     .slot canvas {
@@ -137,7 +139,10 @@
       flex: 1 1 650px;
       min-width: 320px;
       max-width: 950px;
-      box-shadow: 0 0 0 1px #2b384b, 0 18px 40px rgba(0, 0, 0, 0.45);
+      box-shadow:
+        0 0 0 1px #303947,
+        0 0 34px rgba(255, 91, 0, 0.08),
+        0 22px 52px rgba(0, 0, 0, 0.62);
     }
 
     .slot-center canvas {
@@ -310,10 +315,20 @@
   <script type="module">
     import * as THREE from "three";
     import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+    import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
     const CELL = 1.45;
     const WALL_HEIGHT = 1.15;
     const WALL_THICKNESS = 0.32;
+    const PATH_HEIGHT = 0.11;
+
+    const CENTER_BLOOM_STRENGTH = 0.85;
+    const SIDE_BLOOM_STRENGTH = 0.5;
+    const BLOOM_RADIUS = 0.35;
+    const BLOOM_THRESHOLD = 1.15;
 
     // Camera framing padding: multiplies each maze's circumscribed radius
     // so the side previews' auto-rotation never clips a corner out of view,
@@ -346,36 +361,44 @@
       CELL + WALL_THICKNESS
     );
 
-    const markerRingGeometry = new THREE.TorusGeometry(0.27, 0.065, 16, 40);
-    const markerOrbGeometry = new THREE.SphereGeometry(0.12, 18, 18);
+    const markerRingGeometry = new THREE.TorusGeometry(0.32, 0.055, 16, 48);
+    const markerOrbGeometry = new THREE.SphereGeometry(0.115, 20, 20);
 
     const wallMaterial = new THREE.MeshStandardMaterial({
-      color: 0xdfe8f4,
-      roughness: 0.72,
-      metalness: 0.02
+      color: 0x7b8088,
+      roughness: 0.78,
+      metalness: 0.13
     });
 
     const floorMaterial = new THREE.MeshStandardMaterial({
-      color: 0x2b384b,
-      roughness: 0.92
+      color: 0x11161d,
+      roughness: 0.94,
+      metalness: 0.04
+    });
+
+    const floorGridMaterial = new THREE.LineBasicMaterial({
+      color: 0x38414d,
+      transparent: true,
+      opacity: 0.34
     });
 
     const baseMaterial = new THREE.MeshStandardMaterial({
-      color: 0x161d27,
-      roughness: 0.96
+      color: 0x05070a,
+      roughness: 0.98,
+      metalness: 0.02
     });
 
+    // The reference style uses the same hot orange treatment for both markers.
     const startMarkerMaterial = new THREE.MeshStandardMaterial({
-      color: 0x39e879,
-      emissive: 0x39e879,
-      emissiveIntensity: 1.35
+      color: 0xff7900,
+      emissive: 0xff4d00,
+      emissiveIntensity: 2.0,
+      roughness: 0.28,
+      metalness: 0.12,
+      toneMapped: false
     });
 
-    const exitMarkerMaterial = new THREE.MeshStandardMaterial({
-      color: 0xff5267,
-      emissive: 0xff5267,
-      emissiveIntensity: 1.35
-    });
+    const exitMarkerMaterial = startMarkerMaterial;
 
     const identityMatrix = new THREE.Matrix4();
 
@@ -484,6 +507,227 @@
       return { h, v, start, exit, cols, rows };
     }
 
+    // Breadth-first shortest path from S to E over the same wall grid used
+    // for rendering. Returns an ordered list of [col, row] cells, or null
+    // if either marker is missing/off-grid (e.g. a malformed sample with
+    // an overflow marker) or no path connects them.
+    function solveMazePath(parsed) {
+      const { cols, rows, h, v, start, exit } = parsed;
+
+      if (!start || !exit) {
+        return null;
+      }
+
+      const startCol = Math.round(start.col);
+      const exitCol = Math.round(exit.col);
+
+      const inBounds = (col, row) =>
+        Number.isInteger(col) && col >= 0 && col < cols &&
+        row >= 0 && row < rows;
+
+      if (!inBounds(startCol, start.row) || !inBounds(exitCol, exit.row)) {
+        return null;
+      }
+
+      const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+      const cameFrom = Array.from({ length: rows }, () => Array(cols).fill(null));
+
+      const queue = [[startCol, start.row]];
+      visited[start.row][startCol] = true;
+
+      while (queue.length > 0) {
+        const [col, row] = queue.shift();
+
+        if (col === exitCol && row === exit.row) {
+          break;
+        }
+
+        const neighbors = [];
+
+        if (row > 0 && h[row][col] === 0) {
+          neighbors.push([col, row - 1]);
+        }
+
+        if (row < rows - 1 && h[row + 1][col] === 0) {
+          neighbors.push([col, row + 1]);
+        }
+
+        if (col > 0 && v[row][col] === 0) {
+          neighbors.push([col - 1, row]);
+        }
+
+        if (col < cols - 1 && v[row][col + 1] === 0) {
+          neighbors.push([col + 1, row]);
+        }
+
+        for (const [nCol, nRow] of neighbors) {
+          if (!visited[nRow][nCol]) {
+            visited[nRow][nCol] = true;
+            cameFrom[nRow][nCol] = [col, row];
+            queue.push([nCol, nRow]);
+          }
+        }
+      }
+
+      if (!visited[exit.row][exitCol]) {
+        return null;
+      }
+
+      const path = [];
+      let step = [exitCol, exit.row];
+
+      while (step) {
+        path.push(step);
+        const [col, row] = step;
+        step = (col === startCol && row === start.row) ? null : cameFrom[row][col];
+      }
+
+      path.reverse();
+      return path;
+    }
+
+    const PATH_HALO_COLOR = 0xff3500;
+    const PATH_BEAM_COLOR = new THREE.Color().setRGB(2.4, 0.42, 0.01);
+    const PATH_CORE_COLOR = new THREE.Color().setRGB(4.8, 1.55, 0.22);
+    const PATH_PULSE_COLOR = new THREE.Color().setRGB(5.5, 1.65, 0.2);
+    const PATH_PULSE_COUNT = 6;
+    const PATH_CORNER_RADIUS = 0.34;
+
+    // Rounds each interior waypoint with a short quadratic-Bezier fillet
+    // (clamped to a fraction of the shorter adjoining segment so back-to-back
+    // turns can never overshoot into a neighboring corner) instead of a
+    // sharp right angle, so the beam reads as a continuous flowing route.
+    function buildRoundedPathCurve(points, cornerRadius) {
+      const curve = new THREE.CurvePath();
+
+      if (points.length < 2) {
+        return curve;
+      }
+
+      let current = points[0].clone();
+
+      for (let i = 1; i < points.length - 1; i += 1) {
+        const previous = points[i - 1];
+        const corner = points[i];
+        const next = points[i + 1];
+
+        const incoming = corner.clone().sub(previous).normalize();
+        const outgoing = next.clone().sub(corner).normalize();
+
+        const maxRadius = Math.min(
+          corner.distanceTo(previous),
+          corner.distanceTo(next)
+        ) * 0.45;
+
+        const radius = Math.min(cornerRadius, maxRadius);
+
+        const beforeCorner = corner.clone().addScaledVector(incoming, -radius);
+        const afterCorner = corner.clone().addScaledVector(outgoing, radius);
+
+        curve.add(new THREE.LineCurve3(current, beforeCorner));
+        curve.add(new THREE.QuadraticBezierCurve3(beforeCorner, corner, afterCorner));
+        current = afterCorner;
+      }
+
+      curve.add(new THREE.LineCurve3(current, points[points.length - 1]));
+      return curve;
+    }
+
+    // Layered halo/beam/core tubes plus small traveling pulses along the
+    // route, all self-lit MeshBasicMaterials so the beam reads as glowing
+    // rather than a lit/shaded solid.
+    function createPathMesh(parsed) {
+      const path = solveMazePath(parsed);
+
+      if (!path || path.length < 2) {
+        return null;
+      }
+
+      const points = path.map(
+        ([col, row]) => new THREE.Vector3(
+          localX(col + 0.5, parsed.cols),
+          PATH_HEIGHT,
+          localZ(row + 0.5, parsed.rows)
+        )
+      );
+
+      const curve = buildRoundedPathCurve(points, PATH_CORNER_RADIUS);
+      const tubularSegments = Math.max(path.length * 12, 24);
+
+      const group = new THREE.Group();
+
+      const halo = new THREE.Mesh(
+        new THREE.TubeGeometry(curve, tubularSegments, 0.19, 12, false),
+        new THREE.MeshBasicMaterial({
+          color: PATH_HALO_COLOR,
+          transparent: true,
+          opacity: 0.11,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          toneMapped: false
+        })
+      );
+      halo.userData.disposableGeometry = true;
+      halo.userData.disposableMaterial = true;
+      group.add(halo);
+
+      const beam = new THREE.Mesh(
+        new THREE.TubeGeometry(curve, tubularSegments, 0.082, 12, false),
+        new THREE.MeshBasicMaterial({
+          color: PATH_BEAM_COLOR,
+          toneMapped: false
+        })
+      );
+      beam.userData.disposableGeometry = true;
+      beam.userData.disposableMaterial = true;
+      group.add(beam);
+
+      const core = new THREE.Mesh(
+        new THREE.TubeGeometry(curve, tubularSegments, 0.029, 10, false),
+        new THREE.MeshBasicMaterial({
+          color: PATH_CORE_COLOR,
+          toneMapped: false
+        })
+      );
+      core.userData.disposableGeometry = true;
+      core.userData.disposableMaterial = true;
+      group.add(core);
+
+      // Small glowing orbs that flow along the route; they reuse the
+      // shared marker-orb geometry (only their per-instance material is
+      // disposed, never the shared geometry).
+      const pulses = [];
+
+      for (let index = 0; index < PATH_PULSE_COUNT; index += 1) {
+        const pulseMesh = new THREE.Mesh(
+          markerOrbGeometry,
+          new THREE.MeshBasicMaterial({
+            color: PATH_PULSE_COLOR,
+            transparent: true,
+            opacity: 1,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            toneMapped: false
+          })
+        );
+
+        // A couple of traveling point lights make the orange pulse visibly
+        // wash over nearby floor tiles and wall faces, like the reference.
+        if (index < 2) {
+          const pulseLight = new THREE.PointLight(0xff5a00, 2.2, CELL * 1.75, 2.0);
+          pulseLight.position.y = 0.08;
+          pulseMesh.add(pulseLight);
+          pulseMesh.userData.pulseLight = pulseLight;
+        }
+
+        pulseMesh.userData.disposableMaterial = true;
+        group.add(pulseMesh);
+        pulses.push({ mesh: pulseMesh, offset: index / PATH_PULSE_COUNT });
+      }
+
+      return { group, curve, halo, beam, core, pulses };
+    }
+
     function createLabelTexture(text) {
       const labelCanvas = document.createElement("canvas");
       labelCanvas.width = 256;
@@ -494,9 +738,9 @@
       context.textAlign = "center";
       context.textBaseline = "middle";
       context.font = "bold 82px Arial";
-      context.fillStyle = "#ffffff";
-      context.shadowColor = "rgba(0,0,0,.9)";
-      context.shadowBlur = 12;
+      context.fillStyle = "#fff3ce";
+      context.shadowColor = "#ff5a00";
+      context.shadowBlur = 24;
       context.fillText(text, 128, 64);
 
       const texture = new THREE.CanvasTexture(labelCanvas);
@@ -506,14 +750,20 @@
 
     const startLabelMaterial = new THREE.SpriteMaterial({
       map: createLabelTexture("S"),
+      color: 0xffad42,
       transparent: true,
-      depthTest: false
+      depthTest: false,
+      blending: THREE.AdditiveBlending,
+      toneMapped: false
     });
 
     const exitLabelMaterial = new THREE.SpriteMaterial({
       map: createLabelTexture("E"),
+      color: 0xffad42,
       transparent: true,
-      depthTest: false
+      depthTest: false,
+      blending: THREE.AdditiveBlending,
+      toneMapped: false
     });
 
     function createMarker(group, marker, type, cols, rows) {
@@ -535,17 +785,21 @@
 
       const ring = new THREE.Mesh(markerRingGeometry, material);
       ring.rotation.x = Math.PI / 2;
-      ring.position.y = 0.06;
+      ring.position.y = 0.055;
       markerGroup.add(ring);
 
       const orb = new THREE.Mesh(markerOrbGeometry, material);
-      orb.position.y = 0.29;
+      orb.position.y = 0.20;
       markerGroup.add(orb);
 
       const label = new THREE.Sprite(labelMaterial);
-      label.position.y = 0.86;
-      label.scale.set(0.72, 0.36, 1);
+      label.position.y = 0.58;
+      label.scale.set(0.84, 0.42, 1);
       markerGroup.add(label);
+
+      const markerLight = new THREE.PointLight(0xff5800, 2.0, CELL * 1.5, 2.0);
+      markerLight.position.y = 0.22;
+      markerGroup.add(markerLight);
 
       group.add(markerGroup);
       return orb;
@@ -618,6 +872,35 @@
       }
     }
 
+    function createFloorGrid(parsed, group) {
+      const vertices = [];
+      const minX = localX(0, parsed.cols);
+      const maxX = localX(parsed.cols, parsed.cols);
+      const minZ = localZ(0, parsed.rows);
+      const maxZ = localZ(parsed.rows, parsed.rows);
+      const gridY = 0.006;
+
+      for (let col = 0; col <= parsed.cols; col += 1) {
+        const x = localX(col, parsed.cols);
+        vertices.push(x, gridY, minZ, x, gridY, maxZ);
+      }
+
+      for (let row = 0; row <= parsed.rows; row += 1) {
+        const z = localZ(row, parsed.rows);
+        vertices.push(minX, gridY, z, maxX, gridY, z);
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(vertices, 3)
+      );
+
+      const grid = new THREE.LineSegments(geometry, floorGridMaterial);
+      grid.userData.disposableGeometry = true;
+      group.add(grid);
+    }
+
     function createMazeObject(parsed) {
       const group = new THREE.Group();
 
@@ -650,16 +933,26 @@
       floor.receiveShadow = true;
       floor.userData.disposableGeometry = true;
       group.add(floor);
+      createFloorGrid(parsed, group);
 
       createWallInstances(parsed, group);
 
       const startOrb = createMarker(group, parsed.start, "start", parsed.cols, parsed.rows);
       const exitOrb = createMarker(group, parsed.exit, "exit", parsed.cols, parsed.rows);
 
+      // Only added when a path actually connects S to E; a malformed
+      // sample with no solution simply gets no beam at all.
+      const path = createPathMesh(parsed);
+
+      if (path) {
+        group.add(path.group);
+      }
+
       return {
         group,
         startOrb,
         exitOrb,
+        path,
         mazeWidth,
         mazeDepth
       };
@@ -671,8 +964,22 @@
           // Disposes only this InstancedMesh's own instance buffer, not the
           // shared BufferGeometry it references.
           object.dispose();
-        } else if (object.userData && object.userData.disposableGeometry && object.geometry) {
+          return;
+        }
+
+        if (!object.userData) {
+          return;
+        }
+
+        if (object.userData.disposableGeometry && object.geometry) {
           object.geometry.dispose();
+        }
+
+        // Separate from disposableGeometry: some meshes (e.g. the path
+        // pulses) reuse a shared geometry but still own a unique
+        // per-instance material that must be disposed here.
+        if (object.userData.disposableMaterial && object.material) {
+          object.material.dispose();
         }
       });
     }
@@ -724,7 +1031,10 @@
 
       if (canvas.width !== expectedWidth || canvas.height !== expectedHeight) {
         renderer.setSize(width, height, false);
+        return true;
       }
+
+      return false;
     }
 
     function createRenderer(canvas) {
@@ -739,20 +1049,44 @@
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 0.95;
 
       return renderer;
     }
 
     function createLighting(scene) {
-      scene.add(new THREE.HemisphereLight(0xc8ddff, 0x20242b, 2.2));
+      scene.background = new THREE.Color(0x07090d);
+      scene.add(new THREE.HemisphereLight(0xb9c9df, 0x08090b, 1.25));
 
-      const keyLight = new THREE.DirectionalLight(0xffffff, 3.0);
+      const keyLight = new THREE.DirectionalLight(0xf1f5ff, 2.65);
       keyLight.position.set(8, 13, 9);
       keyLight.castShadow = true;
-      keyLight.shadow.mapSize.set(512, 512);
+      keyLight.shadow.mapSize.set(1024, 1024);
       scene.add(keyLight);
 
+      const warmRim = new THREE.DirectionalLight(0xff8a4c, 0.52);
+      warmRim.position.set(-7, 4, -8);
+      scene.add(warmRim);
+
       return keyLight;
+    }
+
+    function createComposer(renderer, scene, camera, bloomStrength) {
+      const composer = new EffectComposer(renderer);
+      composer.setPixelRatio(renderer.getPixelRatio());
+      composer.addPass(new RenderPass(scene, camera));
+
+      const bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(1, 1),
+        bloomStrength,
+        BLOOM_RADIUS,
+        BLOOM_THRESHOLD
+      );
+      composer.addPass(bloomPass);
+      composer.addPass(new OutputPass());
+
+      return { composer, bloomPass };
     }
 
     function createSideViewport(canvas) {
@@ -765,14 +1099,24 @@
       camera.up.set(0, 0, -1);
       camera.lookAt(0, 0, 0);
 
+      const { composer, bloomPass } = createComposer(
+        renderer,
+        scene,
+        camera,
+        SIDE_BLOOM_STRENGTH
+      );
+
       return {
         renderer,
+        composer,
+        bloomPass,
         scene,
         camera,
         keyLight,
         group: null,
         startOrb: null,
         exitOrb: null,
+        path: null,
         baseHalfHeight: MIN_ORTHO_HALF_HEIGHT,
         initialRotation: 0,
         rotationSpeed: 0
@@ -796,15 +1140,25 @@
       controls.maxPolarAngle = THREE.MathUtils.degToRad(85);
       // autoRotate/autoRotateSpeed are set per-sample in loadCenterViewport.
 
+      const { composer, bloomPass } = createComposer(
+        renderer,
+        scene,
+        camera,
+        CENTER_BLOOM_STRENGTH
+      );
+
       return {
         renderer,
+        composer,
+        bloomPass,
         scene,
         camera,
         controls,
         keyLight,
         group: null,
         startOrb: null,
-        exitOrb: null
+        exitOrb: null,
+        path: null
       };
     }
 
@@ -820,6 +1174,7 @@
       viewport.group = maze.group;
       viewport.startOrb = maze.startOrb;
       viewport.exitOrb = maze.exitOrb;
+      viewport.path = maze.path;
 
       const shadowExtent = Math.max(boundingRadius * 1.2, MIN_SHADOW_EXTENT);
       viewport.keyLight.shadow.camera.left = -shadowExtent;
@@ -836,6 +1191,7 @@
         viewport.scene.remove(viewport.group);
         disposeMazeGroup(viewport.group);
         viewport.group = null;
+        viewport.path = null;
       }
     }
 
@@ -1031,6 +1387,51 @@
       }
     });
 
+    function updatePathAnimation(viewport, elapsed) {
+      const path = viewport.path;
+
+      if (!path) {
+        return;
+      }
+
+      // Combined slow and fast oscillations read as a controlled electric
+      // flicker rather than a single steady pulse.
+      const flicker =
+        0.88 +
+        Math.sin(elapsed * 8.0) * 0.065 +
+        Math.sin(elapsed * 21.0) * 0.035 +
+        Math.sin(elapsed * 47.0) * 0.018;
+
+      path.halo.material.opacity = 0.045 + flicker * 0.075;
+
+      // HDR-like material values give UnrealBloomPass a hot white/orange core
+      // while preserving the saturated orange body of the beam.
+      path.beam.material.color.setRGB(
+        2.15 * flicker,
+        0.38 * flicker,
+        0.008
+      );
+      path.core.material.color.setRGB(
+        4.3 * flicker,
+        1.35 * flicker,
+        0.18 * flicker
+      );
+
+      path.pulses.forEach(({ mesh, offset }, index) => {
+        const t = (elapsed * 0.18 + offset) % 1;
+        const point = path.curve.getPointAt(t);
+        mesh.position.copy(point);
+
+        const flash = 0.58 + 0.42 * Math.sin(elapsed * 16 + index * 1.75);
+        mesh.scale.setScalar(0.48 + flash * 0.42);
+        mesh.material.opacity = 0.48 + flash * 0.32;
+
+        if (mesh.userData.pulseLight) {
+          mesh.userData.pulseLight.intensity = 1.2 + flash * 2.2;
+        }
+      });
+    }
+
     function updateSideViewport(viewport, elapsed) {
       if (!viewport.group) {
         return;
@@ -1043,20 +1444,24 @@
         return;
       }
 
-      resizeRendererToDisplaySize(viewport.renderer);
+      if (resizeRendererToDisplaySize(viewport.renderer)) {
+        viewport.composer.setSize(width, height);
+      }
       updateOrthographicCamera(viewport.camera, width / height, viewport.baseHalfHeight);
 
       viewport.group.rotation.y = viewport.initialRotation + elapsed * viewport.rotationSpeed;
 
       if (viewport.startOrb) {
-        viewport.startOrb.position.y = 0.29 + Math.sin(elapsed * 2.4) * 0.05;
+        viewport.startOrb.position.y = 0.20 + Math.sin(elapsed * 2.4) * 0.035;
       }
 
       if (viewport.exitOrb) {
-        viewport.exitOrb.position.y = 0.29 + Math.sin(elapsed * 2.4 + Math.PI) * 0.05;
+        viewport.exitOrb.position.y = 0.20 + Math.sin(elapsed * 2.4 + Math.PI) * 0.035;
       }
 
-      viewport.renderer.render(viewport.scene, viewport.camera);
+      updatePathAnimation(viewport, elapsed);
+
+      viewport.composer.render();
     }
 
     function updateCenterViewport(elapsed, deltaSeconds) {
@@ -1071,7 +1476,9 @@
         return;
       }
 
-      resizeRendererToDisplaySize(centerViewport.renderer);
+      if (resizeRendererToDisplaySize(centerViewport.renderer)) {
+        centerViewport.composer.setSize(width, height);
+      }
 
       const aspect = width / height;
 
@@ -1081,20 +1488,22 @@
       }
 
       if (centerViewport.startOrb) {
-        centerViewport.startOrb.position.y = 0.29 + Math.sin(elapsed * 2.4) * 0.05;
+        centerViewport.startOrb.position.y = 0.20 + Math.sin(elapsed * 2.4) * 0.035;
       }
 
       if (centerViewport.exitOrb) {
         centerViewport.exitOrb.position.y =
-          0.29 + Math.sin(elapsed * 2.4 + Math.PI) * 0.05;
+          0.20 + Math.sin(elapsed * 2.4 + Math.PI) * 0.035;
       }
+
+      updatePathAnimation(centerViewport, elapsed);
 
       // Pass real elapsed time explicitly: OrbitControls.update()'s no-arg
       // fallback assumes a fixed 60 calls/sec and drifts if the actual
       // frame rate differs (e.g. a throttled/background tab), which would
       // make autoRotate stall relative to wall-clock time.
       centerViewport.controls.update(deltaSeconds);
-      centerViewport.renderer.render(centerViewport.scene, centerViewport.camera);
+      centerViewport.composer.render();
     }
 
     const clock = new THREE.Clock();
