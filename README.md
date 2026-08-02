@@ -3,6 +3,18 @@
 Finetune `unsloth/gemma-4-E2B-it` on a local ASCII-maze dataset with Unsloth +
 LoRA, then export / convert / run the result.
 
+## 🎮 Live 3D maze gallery
+
+**[→ Open the interactive gallery](https://majnas.github.io/finetune-gemma4-to-generate-ascii-maze/)**
+
+Renders model-generated ASCII mazes as slowly-rotating 3D scenes
+(`asciimaze/generate_maze_gallery.py`); the page in `docs/` is served via
+GitHub Pages. Regenerate it from any `outputs/*.txt` sample file:
+
+```bash
+python3 asciimaze/generate_maze_gallery.py <path-to-samples.txt> -o docs/index.html
+```
+
 ## Repo layout
 
 ```
