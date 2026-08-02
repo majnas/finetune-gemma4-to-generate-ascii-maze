@@ -2,44 +2,18 @@
 
 <p align="center">
   <a href="https://majnas.github.io/finetune-gemma4-to-generate-ascii-maze/">
+    <img src="https://img.shields.io/badge/Project%20Page-Live%203D%20Gallery-4d8dff?style=for-the-badge" alt="Project Page" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://majnas.github.io/finetune-gemma4-to-generate-ascii-maze/">
     <img src="assets/varNxN_sample10_topview.gif" alt="varNxN sample 10, top view" />
   </a>
 </p>
 
 Finetune `unsloth/gemma-4-E2B-it` on a local ASCII-maze dataset with Unsloth +
 LoRA, then export / convert / run the result.
-
-## 🎮 Live 3D maze gallery
-
-**[→ Open the interactive gallery](https://majnas.github.io/finetune-gemma4-to-generate-ascii-maze/)**
-
-An interactive 3D carousel of model-generated ASCII mazes, one tab per
-fine-tuning phase (`fixed4x4`, `varNxN`, `varNxM`, `varNxM_rndSE`). Pick a
-phase, then drag to orbit / scroll to zoom the centered maze, click a side
-preview (or use the arrows / ←→ keys) to browse its 100 samples.
-
-`docs/index.html` is a hand-maintained static page; only the sample data
-is generated. Regenerate `docs/data/*.json` from each phase's `gguf_samples*.txt`
-after a new batch of samples:
-
-```bash
-python3 asciimaze/generate_maze_carousel_data.py
-```
-
-Pass `--phase NAME=PATH` (repeatable) to point a phase at a different sample
-file. To preview locally, `fetch()` needs a real HTTP origin (opening
-`index.html` via `file://` won't load the data), so serve `docs/` instead:
-
-```bash
-cd docs && python3 -m http.server 8000
-```
-
-`asciimaze/generate_maze_gallery.py` still exists for generating a one-off
-full-grid HTML gallery from a single `outputs/*.txt` file, if ever needed:
-
-```bash
-python3 asciimaze/generate_maze_gallery.py <path-to-samples.txt> -o maze_gallery.html
-```
 
 ## Repo layout
 
@@ -125,3 +99,35 @@ CUDA_VISIBLE_DEVICES=0 ~/.unsloth/llama.cpp/llama-server \
 
 Open `http://localhost:8090`, or POST to `/v1/chat/completions`
 (OpenAI-compatible).
+
+## 🎮 Live 3D maze gallery
+
+**[→ Open the interactive gallery](https://majnas.github.io/finetune-gemma4-to-generate-ascii-maze/)**
+
+An interactive 3D carousel of model-generated ASCII mazes, one tab per
+fine-tuning phase (`fixed4x4`, `varNxN`, `varNxM`, `varNxM_rndSE`). Pick a
+phase, then drag to orbit / scroll to zoom the centered maze, click a side
+preview (or use the arrows / ←→ keys) to browse its 100 samples.
+
+`docs/index.html` is a hand-maintained static page; only the sample data
+is generated. Regenerate `docs/data/*.json` from each phase's `gguf_samples*.txt`
+after a new batch of samples:
+
+```bash
+python3 asciimaze/generate_maze_carousel_data.py
+```
+
+Pass `--phase NAME=PATH` (repeatable) to point a phase at a different sample
+file. To preview locally, `fetch()` needs a real HTTP origin (opening
+`index.html` via `file://` won't load the data), so serve `docs/` instead:
+
+```bash
+cd docs && python3 -m http.server 8000
+```
+
+`asciimaze/generate_maze_gallery.py` still exists for generating a one-off
+full-grid HTML gallery from a single `outputs/*.txt` file, if ever needed:
+
+```bash
+python3 asciimaze/generate_maze_gallery.py <path-to-samples.txt> -o maze_gallery.html
+```
