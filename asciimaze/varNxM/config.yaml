@@ -1,0 +1,70 @@
+# Shared config for gemma4_train.py / gemma4_export.py / gemma4_gguf.py,
+# same shape as asciimaze/fixed4x4/config.yaml - see that file's comments
+# for how experiment_dir/${experiment_dir} substitution and per-script
+# sections work. This experiment trains on rectangular maze sizes (rows !=
+# columns, see asciimaze/varNxM/config.py's MAZE_CONFIG): train/val draw
+# rows and columns independently from {3,5,7,9}, test from the disjoint
+# {4,6,8}, to measure generalization to unseen sizes across two dimensions.
+#
+# Usage:
+#   python asciimaze/gemma4_train.py  --config asciimaze/varNxM/config.yaml --gpu 3
+#   python asciimaze/gemma4_export.py --config asciimaze/varNxM/config.yaml --gpu 3
+#   python asciimaze/gemma4_gguf.py   --config asciimaze/varNxM/config.yaml --gpu 3
+experiment_dir: asciimaze/varNxM/finetune
+
+train:
+  gpu: 3
+  model_name: unsloth/gemma-4-E2B-it
+  # Same as varNxN's 2048 - largest single dimension is still 9, so token
+  # counts stay in the same range even though rows != columns here.
+  max_seq_length: 2048
+  load_in_4bit: false
+  full_finetuning: false
+  finetune_vision_layers: false
+  finetune_language_layers: true
+  finetune_attention_modules: true
+  finetune_mlp_modules: true
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.0
+  lora_bias: none
+  random_state: 3407
+  chat_template: gemma-4
+  train_file: asciimaze/varNxM/data/train.jsonl
+  val_file: asciimaze/varNxM/data/val.jsonl
+  per_device_train_batch_size: 32
+  gradient_accumulation_steps: 1
+  warmup_steps: 5
+  num_train_epochs: 2
+  max_steps: null
+  learning_rate: 0.0002
+  logging_steps: 1
+  optim: adamw_8bit
+  weight_decay: 0.001
+  lr_scheduler_type: linear
+  seed: 3407
+  report_to: none
+  output_dir: ${experiment_dir}/lora
+
+export:
+  gpu: 3
+  lora_path: ${experiment_dir}/lora
+  max_seq_length: 2048
+  load_in_4bit: false
+  save_merged: true
+  merged_dir: ${experiment_dir}/merged
+  push_merged: false
+  hub_repo: HF_ACCOUNT/gemma_4_finetune_varNxM
+  hf_token: YOUR_HF_TOKEN
+
+gguf:
+  gpu: 3
+  lora_path: ${experiment_dir}/lora
+  max_seq_length: 2048
+  load_in_4bit: false
+  save_gguf: true
+  gguf_dir: ${experiment_dir}/gguf
+  quantization_method: F16
+  push_gguf: false
+  hub_repo: HF_ACCOUNT/gemma_4_finetune_varNxM
+  hf_token: YOUR_HF_TOKEN

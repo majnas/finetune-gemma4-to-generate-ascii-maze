@@ -16,7 +16,8 @@ asciimaze/
 │   ├── data/                 # train/val/test.jsonl
 │   ├── finetune/{lora,merged,gguf}/
 │   └── outputs/              # batch-generation results
-└── varNxN/                   # variable square-size maze experiment (3x3-9x9), reuses maze/
+├── varNxN/                   # variable square-size maze experiment (3x3-9x9), reuses maze/
+└── varNxM/                   # variable rectangular maze experiment (rows != columns), reuses maze/
 ```
 
 Run all commands from the repo root. Path flags default into
