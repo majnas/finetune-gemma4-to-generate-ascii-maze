@@ -84,48 +84,32 @@ sections (auto-loaded via `--config`'s own default), and a shared
 `experiment_dir` is templated into each section's paths. Any CLI flag
 overrides its config value for that run.
 
-## 1. Train (LoRA)
+## 1-4. Train, export, convert, and test
 
 ```bash
-python asciimaze/gemma4_train.py --gpu 3
+# 1. Train (LoRA) - saves adapters to asciimaze/fixed4x4/finetune/lora
+python asciimaze/gemma4_train.py
+
+# 2. Export merged float16 model - asciimaze/fixed4x4/finetune/merged
+python asciimaze/gemma4_export.py
+
+# 3. Convert to GGUF (llama.cpp) - fixed4x4/finetune/gguf/gemma-4-E2B-it.F16.gguf + Modelfile
+python asciimaze/gemma4_gguf.py
+
+# 4. Quick inference (single prompt)
+python asciimaze/gemma4_inference.py
 ```
-
-Trains with SFTTrainer, saves adapters to `asciimaze/fixed4x4/finetune/lora`.
-
-## 2. Export merged float16 model
-
-```bash
-python asciimaze/gemma4_export.py --gpu 3
-```
-
-Merges the LoRA adapters into a standalone float16 checkpoint at
-`asciimaze/fixed4x4/finetune/merged`.
-
-## 3. Convert to GGUF (llama.cpp)
-
-```bash
-python asciimaze/gemma4_gguf.py --gpu 3
-```
-
-Produces `asciimaze/fixed4x4/finetune/gguf/gemma-4-E2B-it.F16.gguf` + a
-`Modelfile` for Ollama.
 
 > If merged/GGUF output looks like the un-finetuned base model, it's a
 > known low-rank LoRA merge-loss issue - see the config's `lora_r`/`lora_alpha`
 > (kept at 16/32 to avoid it), or serve the adapter unmerged instead.
 
-## 4. Quick inference (single prompt)
-
-```bash
-python asciimaze/gemma4_inference.py --gpu 3
-```
-
 ## Batch generation - 100 samples
 
 ```bash
-python asciimaze/gemma4_generate_100_samples_with_lora.py --gpu 3
-python asciimaze/gemma4_generate_100_samples_with_merged.py --gpu 3
-python asciimaze/gemma4_generate_100_samples_with_gguf.py --gpu 3
+python asciimaze/gemma4_generate_100_samples_with_lora.py
+python asciimaze/gemma4_generate_100_samples_with_merged.py
+python asciimaze/gemma4_generate_100_samples_with_gguf.py
 ```
 
 Each generates N independent samples of the same prompt to one output file
@@ -134,7 +118,7 @@ under `asciimaze/fixed4x4/outputs/`.
 ## Serve the GGUF as an API / chat UI
 
 ```bash
-CUDA_VISIBLE_DEVICES=3 ~/.unsloth/llama.cpp/llama-server \
+CUDA_VISIBLE_DEVICES=0 ~/.unsloth/llama.cpp/llama-server \
   -m asciimaze/fixed4x4/finetune/gguf/gemma-4-E2B-it.F16.gguf \
   -ngl 99 -c 4096 --host 0.0.0.0 --port 8090
 ```
