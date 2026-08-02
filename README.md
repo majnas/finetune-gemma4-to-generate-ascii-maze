@@ -17,7 +17,8 @@ asciimaze/
 │   ├── finetune/{lora,merged,gguf}/
 │   └── outputs/              # batch-generation results
 ├── varNxN/                   # variable square-size maze experiment (3x3-9x9), reuses maze/
-└── varNxM/                   # variable rectangular maze experiment (rows != columns), reuses maze/
+├── varNxM/                   # variable rectangular maze experiment (rows != columns), reuses maze/
+└── varNxM_rndSE/             # same as varNxM but S/E are random cells, not fixed corners
 ```
 
 Run all commands from the repo root. Path flags default into
