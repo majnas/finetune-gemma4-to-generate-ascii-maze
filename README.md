@@ -1,5 +1,11 @@
 # Gemma-4 (E2B) ASCII-Maze Finetune
 
+<p align="center">
+  <a href="https://majnas.github.io/finetune-gemma4-to-generate-ascii-maze/">
+    <img src="assets/varNxN_sample10_topview.gif" alt="varNxN sample 10, top view" />
+  </a>
+</p>
+
 Finetune `unsloth/gemma-4-E2B-it` on a local ASCII-maze dataset with Unsloth +
 LoRA, then export / convert / run the result.
 
