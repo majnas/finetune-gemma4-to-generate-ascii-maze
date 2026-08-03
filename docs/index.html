@@ -3,313 +3,290 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ASCII Maze Gallery</title>
+  <title>Maze Target Board</title>
 
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
     }
+
+    * { box-sizing: border-box; }
 
     html,
     body {
+      width: 100%;
+      height: 100%;
       margin: 0;
-      min-height: 100%;
-      background:
-        radial-gradient(circle at 50% -15%, #1b2533 0%, #0b0f15 45%, #050608 100%);
-      color: #ffffff;
-      font-family: Inter, Arial, sans-serif;
-    }
-
-    body {
-      padding: 20px 14px 40px;
-    }
-
-    .page {
-      max-width: 1780px;
-      margin: 0 auto;
-    }
-
-    .header {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    .header h1 {
-      margin: 0 0 8px;
-      font-size: 24px;
-    }
-
-    .header p {
-      margin: 0 auto;
-      max-width: 720px;
-      color: #b9c4d3;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .header code {
-      background: #161d27;
-      border: 1px solid #2b384b;
-      border-radius: 4px;
-      padding: 1px 5px;
-      font-size: 13px;
-    }
-
-    .header p.header-links {
-      margin-top: 10px;
-    }
-
-    .header-links a {
-      color: #4d8dff;
-      font-size: 13px;
-      font-weight: 600;
-      text-decoration: none;
-    }
-
-    .header-links a:hover {
-      text-decoration: underline;
-    }
-
-    .phase-tabs {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 24px 0 20px;
-    }
-
-    .phase-tab {
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      color: #b9c4d3;
-      background: #161d27;
-      border: 1px solid #2b384b;
-      border-radius: 999px;
-      padding: 8px 18px;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-    }
-
-    .phase-tab:hover {
-      border-color: #4d8dff;
-      color: #ffffff;
-    }
-
-    .phase-tab.active {
-      background: #4d8dff;
-      border-color: #4d8dff;
-      color: #0f141d;
-    }
-
-    .carousel {
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .carousel-row {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      min-width: 0;
-    }
-
-    .slot {
-      position: relative;
-      min-width: 0;
-      aspect-ratio: 4 / 3;
-      border-radius: 12px;
       overflow: hidden;
       background:
-        radial-gradient(circle at 50% 30%, #141b24 0%, #080a0e 68%, #040506 100%);
+        radial-gradient(circle at 50% 38%, #17202b 0%, #080b10 50%, #020304 100%);
     }
 
-    .slot canvas {
+    canvas {
       display: block;
       width: 100%;
       height: 100%;
     }
 
-    .slot-center {
-      flex: 1 1 650px;
-      min-width: 320px;
-      max-width: 950px;
-      box-shadow:
-        0 0 0 1px #303947,
-        0 0 34px rgba(255, 91, 0, 0.08),
-        0 22px 52px rgba(0, 0, 0, 0.62);
-    }
-
-    .slot-center canvas {
-      cursor: grab;
-    }
-
-    .slot-center canvas:active {
-      cursor: grabbing;
-    }
-
-    .slot-side {
-      flex: 0 0 150px;
-      opacity: 0.55;
-      filter: brightness(0.75) saturate(0.85);
-      transform: scale(0.92);
-      cursor: pointer;
-      transition: opacity 0.15s, transform 0.15s, filter 0.15s;
-    }
-
-    .slot-side:hover {
-      opacity: 0.9;
-      transform: scale(0.96);
-      filter: brightness(0.9) saturate(1);
-    }
-
-    .slot-label {
-      position: absolute;
-      left: 8px;
-      bottom: 8px;
-      font-size: 11px;
-      color: #b9c4d3;
-      background: rgba(15, 20, 29, 0.7);
-      border-radius: 4px;
-      padding: 2px 6px;
+    .header {
+      position: fixed;
+      top: 20px;
+      left: 22px;
+      z-index: 10;
       pointer-events: none;
+      text-shadow: 0 2px 16px rgba(0, 0, 0, 0.9);
     }
 
-    @keyframes carousel-pulse {
-      from {
-        opacity: 0.35;
-        transform: scale(0.93);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
+    .header h1 {
+      margin: 0;
+      font-size: clamp(20px, 2.3vw, 34px);
+      letter-spacing: -0.03em;
+      font-weight: 760;
     }
 
-    .carousel-row.pulse .slot-center,
-    .carousel-row.pulse .slot-side {
-      animation: carousel-pulse 220ms ease-out;
-    }
-
-    .nav-arrow {
-      flex: 0 0 auto;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: #161d27;
-      border: 1px solid #2b384b;
-      color: #ffffff;
-      font-size: 22px;
-      line-height: 1;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-    }
-
-    .nav-arrow:hover {
-      background: #223047;
-      border-color: #4d8dff;
-    }
-
-    .caption {
-      margin-top: 14px;
-      text-align: center;
+    .header p {
+      margin: 7px 0 0;
+      color: #aeb8c8;
       font-size: 13px;
-      color: #b9c4d3;
     }
 
-    /* Drop the outermost thumbnail pair as the viewport narrows, instead
-       of shrinking every thumbnail below its intended size. */
-    @media (max-width: 1400px) {
-      .slot-side[data-nav="2"],
-      .slot-side[data-nav="-2"] {
-        display: none;
-      }
+    .orange {
+      color: #ff8a21;
+      text-shadow: 0 0 18px rgba(255, 104, 0, 0.75);
     }
 
-    @media (max-width: 780px) {
-      .slot-side {
-        display: none;
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 10px;
+      padding: 6px 9px;
+      color: #cfd6e0;
+      font-size: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 999px;
+      background: rgba(7, 10, 15, 0.64);
+      backdrop-filter: blur(10px);
+    }
+
+    .badge::before {
+      width: 7px;
+      height: 7px;
+      content: "";
+      border-radius: 50%;
+      background: #ff7900;
+      box-shadow: 0 0 12px rgba(255, 90, 0, 0.95);
+    }
+
+    .panel {
+      position: fixed;
+      right: 18px;
+      top: 18px;
+      width: min(286px, calc(100vw - 36px));
+      padding: 16px;
+      z-index: 20;
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 16px;
+      background: rgba(7, 10, 15, 0.74);
+      box-shadow:
+        0 16px 50px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(14px);
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 13px;
+      color: #f5f7fb;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .fixed {
+      color: #ff9a3d;
+      font-size: 10px;
+      font-weight: 750;
+    }
+
+    .control { margin-top: 12px; }
+
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      color: #c9d1dc;
+      font-size: 12px;
+    }
+
+    .value {
+      color: #ff9a3d;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 4px;
+      appearance: none;
+      border-radius: 999px;
+      outline: none;
+      background: linear-gradient(90deg, #ff6200, #ffb35d);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      width: 15px;
+      height: 15px;
+      appearance: none;
+      cursor: pointer;
+      border: 2px solid #ffe1bd;
+      border-radius: 50%;
+      background: #ff7b0c;
+      box-shadow: 0 0 12px rgba(255, 111, 0, 0.85);
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-top: 15px;
+    }
+
+    button {
+      appearance: none;
+      padding: 9px 10px;
+      cursor: pointer;
+      color: #e9edf3;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 650;
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      transition: 130ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 143, 45, 0.5);
+      background: rgba(255, 126, 28, 0.12);
+    }
+
+    button.active {
+      color: #fff2e4;
+      border-color: rgba(255, 127, 24, 0.55);
+      background: rgba(255, 112, 15, 0.18);
+      box-shadow: inset 0 0 18px rgba(255, 95, 0, 0.08);
+    }
+
+    .hint {
+      position: fixed;
+      left: 50%;
+      bottom: 17px;
+      z-index: 10;
+      transform: translateX(-50%);
+      color: rgba(219, 226, 236, 0.68);
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      pointer-events: none;
+      text-shadow: 0 2px 10px #000;
+    }
+
+    .error {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      place-items: center;
+      padding: 30px;
+      color: white;
+      text-align: center;
+      background: #080b10;
+    }
+
+    .error code {
+      color: #ffad66;
+    }
+
+    @media (max-width: 720px) {
+      .header p,
+      .hint { display: none; }
+
+      .panel {
+        top: auto;
+        right: 12px;
+        bottom: 12px;
+        width: calc(100vw - 24px);
       }
 
-      .slot-center {
-        flex-basis: 92%;
-        max-width: none;
+      .header {
+        top: 14px;
+        left: 15px;
       }
     }
   </style>
 
   <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.185.1/examples/jsm/"
+      }
     }
-  }
   </script>
 </head>
 
 <body>
-  <div class="page">
-    <header class="header">
-      <h1>Gemma-4 (E2B) ASCII-Maze Finetune</h1>
-      <p>
-        Finetuning <code>unsloth/gemma-4-E2B-it</code> on a local ASCII-maze
-        dataset with Unsloth + LoRA, then exporting, converting, and running
-        the result. This page is an interactive 3D gallery of the
-        fine-tuned model's generated mazes.
-      </p>
-      <p class="header-links">
-        <a
-          href="https://github.com/majnas/finetune-gemma4-to-generate-ascii-maze"
-          target="_blank"
-          rel="noopener"
-        ><img src="https://img.shields.io/badge/GitHub-Repo-181717?style=for-the-badge&logo=github" alt="GitHub Repo" /></a>
-      </p>
-    </header>
+  <div class="header">
+    <h1>Maze <span class="orange">Target Board</span></h1>
+    <p id="sceneSubtitle">Loading mixed maze datasets…</p>
+    <div class="badge" id="sampleBadge">Loading target maze…</div>
+  </div>
 
-    <nav class="phase-tabs" id="phaseTabs">
-      <button class="phase-tab" data-phase="fixed4x4">fixed4x4</button>
-      <button class="phase-tab" data-phase="varNxN">varNxN</button>
-      <button class="phase-tab" data-phase="varNxM">varNxM</button>
-      <button class="phase-tab" data-phase="varNxM_rndSE">varNxM_rndSE</button>
-    </nav>
-
-    <div class="carousel">
-      <button class="nav-arrow" id="navLeft" aria-label="Previous sample">‹</button>
-
-      <div class="carousel-row" id="carouselRow">
-        <div class="slot slot-side" data-nav="-2">
-          <canvas id="canvasLeft2"></canvas>
-          <div class="slot-label" id="labelLeft2"></div>
-        </div>
-        <div class="slot slot-side" data-nav="-1">
-          <canvas id="canvasLeft1"></canvas>
-          <div class="slot-label" id="labelLeft1"></div>
-        </div>
-
-        <div class="slot slot-center" id="slotCenter">
-          <canvas id="canvasCenter"></canvas>
-        </div>
-
-        <div class="slot slot-side" data-nav="1">
-          <canvas id="canvasRight1"></canvas>
-          <div class="slot-label" id="labelRight1"></div>
-        </div>
-        <div class="slot slot-side" data-nav="2">
-          <canvas id="canvasRight2"></canvas>
-          <div class="slot-label" id="labelRight2"></div>
-        </div>
-      </div>
-
-      <button class="nav-arrow" id="navRight" aria-label="Next sample">›</button>
+  <section class="panel" aria-label="Maze controls">
+    <div class="panel-title">
+      Beam controls
+      <span class="fixed">Bloom 0.03</span>
     </div>
 
-    <div class="caption" id="caption">Loading…</div>
+    <div class="control">
+      <div class="control-row">
+        <label for="speed">Pulse speed</label>
+        <span class="value" id="speedValue">1.00×</span>
+      </div>
+      <input id="speed" type="range" min="0" max="2.5" step="0.05" value="1" />
+    </div>
+
+    <div class="control">
+      <div class="control-row">
+        <label for="flicker">Flicker amount</label>
+        <span class="value" id="flickerValue">35%</span>
+      </div>
+      <input id="flicker" type="range" min="0" max="1" step="0.05" value="0.35" />
+    </div>
+
+    <div class="buttons">
+      <button id="pauseButton">Pause beam</button>
+      <button id="rotateButton" class="active">Auto rotate</button>
+      <button id="topButton">Top view</button>
+      <button id="resetButton">Reset camera</button>
+    </div>
+  </section>
+
+  <div class="hint">Click a scattered maze to make it the target · Drag to orbit · Scroll to zoom · Right-drag to pan</div>
+
+  <div class="error" id="error">
+    <div>
+      <h2>Unable to load the maze board</h2>
+      <p>Serve this folder through a local web server so <code>index.html</code> can load the files under <code>data/</code>.</p>
+      <p><code>python -m http.server</code></p>
+    </div>
   </div>
 
   <script type="module">
@@ -320,1212 +297,1255 @@
     import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
     import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
-    const CELL = 1.45;
-    const WALL_HEIGHT = 1.15;
-    const WALL_THICKNESS = 0.32;
-    const PATH_HEIGHT = 0.11;
+    const CELL_SIZE = 1.18;
+    const WALL_HEIGHT = 0.72;
+    const WALL_THICKNESS = 0.13;
+    const TARGET_REFERENCE_CELLS = 6;
+    const TARGET_REFERENCE_SPAN = TARGET_REFERENCE_CELLS * CELL_SIZE;
+    const BLOOM_STRENGTH = 0.03;
+    const SCATTERED_MAZE_COUNT = 84;
+    const BOARD_WIDTH = 66;
+    const BOARD_DEPTH = 60;
+    const MAZE_SOURCE_FILES = [
+      "./data/fixed4x4.json",
+      "./data/varNxM.json",
+      "./data/varNxM_rndSE.json",
+      "./data/varNxN.json"
+    ];
 
-    const CENTER_BLOOM_STRENGTH = 0.85;
-    const SIDE_BLOOM_STRENGTH = 0.5;
-    const BLOOM_RADIUS = 0.35;
-    const BLOOM_THRESHOLD = 1.15;
+    const N = 0;
+    const E = 1;
+    const S = 2;
+    const W = 3;
 
-    // Camera framing padding: multiplies each maze's circumscribed radius
-    // so the side previews' auto-rotation never clips a corner out of view,
-    // regardless of that sample's row/column count.
-    const ORTHO_PADDING = 1.3;
-    const MIN_ORTHO_HALF_HEIGHT = 3.2;
-    const MIN_SHADOW_EXTENT = 9;
+    const DIRECTIONS = [
+      { dr: -1, dc:  0, wall: N },
+      { dr:  0, dc:  1, wall: E },
+      { dr:  1, dc:  0, wall: S },
+      { dr:  0, dc: -1, wall: W }
+    ];
 
-    // Slow automatic in-plane rotation for the idle side previews.
-    const AUTO_ROTATE_MIN_DPS = 4.0;
-    const AUTO_ROTATE_MAX_DPS = 7.0;
-
-    // Idle previews shown on each side of the interactive center maze.
-    const SIDE_COUNT = 2;
-
-    const PHASES = ["fixed4x4", "varNxN", "varNxM", "varNxM_rndSE"];
-    const DEFAULT_PHASE = "varNxM_rndSE";
-
-    // Shared geometry and materials keep memory and draw-call overhead low
-    // across every viewport and every sample they ever display.
-    const horizontalWallGeometry = new THREE.BoxGeometry(
-      CELL + WALL_THICKNESS,
-      WALL_HEIGHT,
-      WALL_THICKNESS
-    );
-
-    const verticalWallGeometry = new THREE.BoxGeometry(
-      WALL_THICKNESS,
-      WALL_HEIGHT,
-      CELL + WALL_THICKNESS
-    );
-
-    const markerRingGeometry = new THREE.TorusGeometry(0.32, 0.055, 16, 48);
-    const markerOrbGeometry = new THREE.SphereGeometry(0.115, 20, 20);
-
-    const wallMaterial = new THREE.MeshStandardMaterial({
-      color: 0x7b8088,
-      roughness: 0.78,
-      metalness: 0.13
-    });
-
-    const floorMaterial = new THREE.MeshStandardMaterial({
-      color: 0x11161d,
-      roughness: 0.94,
-      metalness: 0.04
-    });
-
-    const floorGridMaterial = new THREE.LineBasicMaterial({
-      color: 0x38414d,
-      transparent: true,
-      opacity: 0.34
-    });
-
-    const baseMaterial = new THREE.MeshStandardMaterial({
-      color: 0x05070a,
-      roughness: 0.98,
-      metalness: 0.02
-    });
-
-    // The reference style uses the same hot orange treatment for both markers.
-    const startMarkerMaterial = new THREE.MeshStandardMaterial({
-      color: 0xff7900,
-      emissive: 0xff4d00,
-      emissiveIntensity: 2.0,
-      roughness: 0.28,
-      metalness: 0.12,
-      toneMapped: false
-    });
-
-    const exitMarkerMaterial = startMarkerMaterial;
-
-    const identityMatrix = new THREE.Matrix4();
-
-    function localX(gridX, cols) {
-      return (gridX - cols / 2) * CELL;
+    function randomBetween(min, max) {
+      return min + Math.random() * (max - min);
     }
 
-    function localZ(gridY, rows) {
-      return (gridY - rows / 2) * CELL;
+    function shuffle(items) {
+      const copy = [...items];
+      for (let index = copy.length - 1; index > 0; index--) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+      }
+      return copy;
     }
 
-    function countChar(str, ch) {
-      let count = 0;
+    function buildMixedScatterCandidates(entries, excludedKey, count) {
+      const sourcePools = new Map();
 
-      for (const c of str) {
-        if (c === ch) {
-          count += 1;
+      for (const entry of entries) {
+        if (entry.key === excludedKey) continue;
+        if (!sourcePools.has(entry.phase)) sourcePools.set(entry.phase, []);
+        sourcePools.get(entry.phase).push(entry);
+      }
+
+      for (const [phase, pool] of sourcePools) {
+        sourcePools.set(phase, shuffle(pool));
+      }
+
+      const selected = [];
+      const initialPhases = shuffle([...sourcePools.keys()]);
+
+      // Seed the board with at least one maze from every available dataset.
+      for (const phase of initialPhases) {
+        const pool = sourcePools.get(phase);
+        if (selected.length >= count || !pool?.length) break;
+        selected.push(pool.pop());
+      }
+
+      while (selected.length < count) {
+        const activePhases = [...sourcePools.keys()].filter(
+          phase => sourcePools.get(phase)?.length
+        );
+        if (activePhases.length === 0) break;
+
+        const phase = activePhases[Math.floor(Math.random() * activePhases.length)];
+        selected.push(sourcePools.get(phase).pop());
+      }
+
+      return shuffle(selected);
+    }
+
+    function parseAsciiMaze(ascii) {
+      const lines = String(ascii).replace(/\r/g, "").trimEnd().split("\n");
+      const topBorderIndex = lines.findIndex(line => (line.match(/\+/g) || []).length >= 2);
+
+      if (topBorderIndex < 0) {
+        throw new Error("Maze has no readable border.");
+      }
+
+      const firstBorder = lines[topBorderIndex];
+      const boundaryColumns = [];
+      for (let index = 0; index < firstBorder.length; index++) {
+        if (firstBorder[index] === "+") boundaryColumns.push(index);
+      }
+
+      const columnCount = boundaryColumns.length - 1;
+      if (columnCount < 2) {
+        throw new Error("Maze border does not contain enough columns.");
+      }
+
+      const remainingLineCount = lines.length - topBorderIndex;
+      const rowCount = Math.floor((remainingLineCount - 1) / 2);
+      if (rowCount < 2) {
+        throw new Error("Maze does not contain enough rows.");
+      }
+
+      const horizontalLines = [];
+      const cellLines = [];
+      const requiredWidth = boundaryColumns.at(-1) + 1;
+
+      for (let row = 0; row <= rowCount; row++) {
+        const horizontal = lines[topBorderIndex + row * 2];
+        if (!horizontal) throw new Error("Maze is missing a horizontal wall row.");
+        horizontalLines.push(horizontal.padEnd(requiredWidth, " "));
+
+        if (row < rowCount) {
+          const cellLine = lines[topBorderIndex + row * 2 + 1];
+          if (!cellLine) throw new Error("Maze is missing a cell row.");
+          cellLines.push(cellLine.padEnd(requiredWidth, " "));
         }
       }
 
-      return count;
-    }
-
-    function parseMaze(mazeText) {
-      const lines = mazeText.split("\n").map((line) => line.replace(/\r$/, ""));
-
-      const borderLines = lines.filter((line) => line.includes("+"));
-      const cellLines = lines.filter((line) => /^\s*\d+\s*\|/.test(line));
-
-      if (borderLines.length < 2 || cellLines.length < 1) {
-        throw new Error(
-          `Expected at least 2 border lines and 1 cell line, received ` +
-          `${borderLines.length} and ${cellLines.length}.`
-        );
-      }
-
-      const trimmedBorders = borderLines.map((line) => {
-        const firstPlus = line.indexOf("+");
-        return firstPlus >= 0 ? line.slice(firstPlus) : line;
-      });
-
-      const trimmedCells = cellLines.map((line) => {
-        const firstPipe = line.indexOf("|");
-        return firstPipe >= 0 ? line.slice(firstPipe) : line;
-      });
-
-      // Column count is derived per maze (rather than assumed) so mazes of
-      // any width parse correctly; take the widest line to tolerate a
-      // ragged/malformed row without truncating the rest of the maze.
-      const cols = Math.max(
-        1,
-        ...trimmedBorders.map((line) => countChar(line, "+") - 1),
-        ...trimmedCells.map((line) => countChar(line, "|") - 1)
+      const cells = Array.from({ length: rowCount }, () =>
+        Array.from({ length: columnCount }, () => ({ walls: [false, false, false, false] }))
       );
-
-      const rows = cellLines.length;
-      const boundaryRows = borderLines.length;
-
-      const h = Array.from({ length: boundaryRows }, () => Array(cols).fill(0));
-      const v = Array.from({ length: rows }, () => Array(cols + 1).fill(0));
 
       let start = null;
-      let exit = null;
+      let end = null;
 
-      for (let boundary = 0; boundary < boundaryRows; boundary += 1) {
-        const mazePart = trimmedBorders[boundary];
+      for (let row = 0; row < rowCount; row++) {
+        for (let column = 0; column < columnCount; column++) {
+          const left = boundaryColumns[column];
+          const right = boundaryColumns[column + 1];
+          const topSegment = horizontalLines[row].slice(left + 1, right);
+          const bottomSegment = horizontalLines[row + 1].slice(left + 1, right);
+          const content = cellLines[row].slice(left + 1, right);
 
-        for (let col = 0; col < cols; col += 1) {
-          const segment = mazePart.slice(col * 4 + 1, col * 4 + 4);
-          h[boundary][col] = segment.includes("-") ? 1 : 0;
+          cells[row][column].walls[N] = topSegment.includes("-");
+          cells[row][column].walls[S] = bottomSegment.includes("-");
+          cells[row][column].walls[W] = cellLines[row][left] === "|";
+          cells[row][column].walls[E] = cellLines[row][right] === "|";
+
+          if (content.includes("S")) start = [row, column];
+          if (content.includes("E")) end = [row, column];
         }
       }
 
-      for (let row = 0; row < rows; row += 1) {
-        const mazePart = trimmedCells[row];
+      start ??= [0, 0];
+      end ??= [rowCount - 1, columnCount - 1];
 
-        for (let boundary = 0; boundary <= cols; boundary += 1) {
-          v[row][boundary] = mazePart[boundary * 4] === "|" ? 1 : 0;
-        }
-
-        for (let col = 0; col < cols; col += 1) {
-          const content = mazePart.slice(col * 4 + 1, col * 4 + 4);
-
-          if (content.includes("S")) {
-            start = { col, row };
-          }
-
-          if (content.includes("E")) {
-            exit = { col, row };
-          }
-        }
-
-        // Preserve malformed model outputs that place S or E to the right
-        // of the maze's own detected column boundary.
-        const overflow = mazePart.slice(cols * 4);
-
-        if (!start && overflow.includes("S")) {
-          start = { col: cols + 0.15, row };
-        }
-
-        if (!exit && overflow.includes("E")) {
-          exit = { col: cols + 0.15, row };
-        }
-      }
-
-      return { h, v, start, exit, cols, rows };
+      return {
+        cells,
+        start,
+        end,
+        rows: rowCount,
+        columns: columnCount,
+        spanX: columnCount * CELL_SIZE,
+        spanZ: rowCount * CELL_SIZE
+      };
     }
 
-    // Breadth-first shortest path from S to E over the same wall grid used
-    // for rendering. Returns an ordered list of [col, row] cells, or null
-    // if either marker is missing/off-grid (e.g. a malformed sample with
-    // an overflow marker) or no path connects them.
-    function solveMazePath(parsed) {
-      const { cols, rows, h, v, start, exit } = parsed;
+    function solveMaze(cells, start, end) {
+      const rowCount = cells.length;
+      const columnCount = cells[0]?.length ?? 0;
+      const queue = [start];
+      const previous = new Map([[start.join(","), null]]);
+      let cursor = 0;
 
-      if (!start || !exit) {
-        return null;
-      }
+      while (cursor < queue.length) {
+        const [row, column] = queue[cursor++];
+        if (row === end[0] && column === end[1]) break;
 
-      const startCol = Math.round(start.col);
-      const exitCol = Math.round(exit.col);
+        for (const direction of DIRECTIONS) {
+          if (cells[row][column].walls[direction.wall]) continue;
 
-      const inBounds = (col, row) =>
-        Number.isInteger(col) && col >= 0 && col < cols &&
-        row >= 0 && row < rows;
+          const nextRow = row + direction.dr;
+          const nextColumn = column + direction.dc;
+          const key = `${nextRow},${nextColumn}`;
 
-      if (!inBounds(startCol, start.row) || !inBounds(exitCol, exit.row)) {
-        return null;
-      }
-
-      const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
-      const cameFrom = Array.from({ length: rows }, () => Array(cols).fill(null));
-
-      const queue = [[startCol, start.row]];
-      visited[start.row][startCol] = true;
-
-      while (queue.length > 0) {
-        const [col, row] = queue.shift();
-
-        if (col === exitCol && row === exit.row) {
-          break;
-        }
-
-        const neighbors = [];
-
-        if (row > 0 && h[row][col] === 0) {
-          neighbors.push([col, row - 1]);
-        }
-
-        if (row < rows - 1 && h[row + 1][col] === 0) {
-          neighbors.push([col, row + 1]);
-        }
-
-        if (col > 0 && v[row][col] === 0) {
-          neighbors.push([col - 1, row]);
-        }
-
-        if (col < cols - 1 && v[row][col + 1] === 0) {
-          neighbors.push([col + 1, row]);
-        }
-
-        for (const [nCol, nRow] of neighbors) {
-          if (!visited[nRow][nCol]) {
-            visited[nRow][nCol] = true;
-            cameFrom[nRow][nCol] = [col, row];
-            queue.push([nCol, nRow]);
+          if (
+            nextRow >= 0 && nextRow < rowCount &&
+            nextColumn >= 0 && nextColumn < columnCount &&
+            !previous.has(key)
+          ) {
+            previous.set(key, [row, column]);
+            queue.push([nextRow, nextColumn]);
           }
         }
       }
 
-      if (!visited[exit.row][exitCol]) {
-        return null;
-      }
+      if (!previous.has(end.join(","))) return [];
 
       const path = [];
-      let step = [exitCol, exit.row];
-
-      while (step) {
-        path.push(step);
-        const [col, row] = step;
-        step = (col === startCol && row === start.row) ? null : cameFrom[row][col];
+      let current = end;
+      while (current) {
+        path.push(current);
+        current = previous.get(current.join(","));
       }
-
-      path.reverse();
-      return path;
+      return path.reverse();
     }
 
-    const PATH_HALO_COLOR = 0xff3500;
-    const PATH_BEAM_COLOR = new THREE.Color().setRGB(2.4, 0.42, 0.01);
-    const PATH_CORE_COLOR = new THREE.Color().setRGB(4.8, 1.55, 0.22);
-    const PATH_PULSE_COLOR = new THREE.Color().setRGB(5.5, 1.65, 0.2);
-    const PATH_PULSE_COUNT = 6;
-    const PATH_CORNER_RADIUS = 0.34;
-
-    // Rounds each interior waypoint with a short quadratic-Bezier fillet
-    // (clamped to a fraction of the shorter adjoining segment so back-to-back
-    // turns can never overshoot into a neighboring corner) instead of a
-    // sharp right angle, so the beam reads as a continuous flowing route.
-    function buildRoundedPathCurve(points, cornerRadius) {
-      const curve = new THREE.CurvePath();
-
-      if (points.length < 2) {
-        return curve;
-      }
+    function createRoundedRoute(points, radius = 0.22) {
+      const curvePath = new THREE.CurvePath();
+      if (points.length < 2) return curvePath;
 
       let current = points[0].clone();
-
-      for (let i = 1; i < points.length - 1; i += 1) {
-        const previous = points[i - 1];
-        const corner = points[i];
-        const next = points[i + 1];
-
+      for (let index = 1; index < points.length - 1; index++) {
+        const previous = points[index - 1];
+        const corner = points[index];
+        const next = points[index + 1];
         const incoming = corner.clone().sub(previous).normalize();
         const outgoing = next.clone().sub(corner).normalize();
+        const cornerRadius = Math.min(
+          radius,
+          corner.distanceTo(previous) * 0.32,
+          next.distanceTo(corner) * 0.32
+        );
 
-        const maxRadius = Math.min(
-          corner.distanceTo(previous),
-          corner.distanceTo(next)
-        ) * 0.45;
+        const entry = corner.clone().addScaledVector(incoming, -cornerRadius);
+        const exit = corner.clone().addScaledVector(outgoing, cornerRadius);
 
-        const radius = Math.min(cornerRadius, maxRadius);
-
-        const beforeCorner = corner.clone().addScaledVector(incoming, -radius);
-        const afterCorner = corner.clone().addScaledVector(outgoing, radius);
-
-        curve.add(new THREE.LineCurve3(current, beforeCorner));
-        curve.add(new THREE.QuadraticBezierCurve3(beforeCorner, corner, afterCorner));
-        current = afterCorner;
+        if (current.distanceToSquared(entry) > 0.000001) {
+          curvePath.add(new THREE.LineCurve3(current, entry));
+        }
+        curvePath.add(new THREE.QuadraticBezierCurve3(entry, corner, exit));
+        current = exit;
       }
 
-      curve.add(new THREE.LineCurve3(current, points[points.length - 1]));
-      return curve;
+      curvePath.add(new THREE.LineCurve3(current, points.at(-1).clone()));
+      return curvePath;
     }
 
-    // Layered halo/beam/core tubes plus small traveling pulses along the
-    // route, all self-lit MeshBasicMaterials so the beam reads as glowing
-    // rather than a lit/shaded solid.
-    function createPathMesh(parsed) {
-      const path = solveMazePath(parsed);
+    function enableShadows(object) {
+      object.traverse(child => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      });
+    }
 
-      if (!path || path.length < 2) {
-        return null;
+    function createRobot() {
+      const robot = new THREE.Group();
+      const shellMaterial = new THREE.MeshStandardMaterial({ color: 0xd7dde6, roughness: 0.34, metalness: 0.65 });
+      const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x222a35, roughness: 0.48, metalness: 0.48 });
+      const jointMaterial = new THREE.MeshStandardMaterial({ color: 0x596474, roughness: 0.38, metalness: 0.72 });
+      const orangeMaterial = new THREE.MeshStandardMaterial({ color: 0xff6b00, emissive: 0xff3500, emissiveIntensity: 2.6, roughness: 0.25, metalness: 0.15 });
+      const eyeMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color().setRGB(10.0, 2.0, 0.2), toneMapped: false });
+
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.30, 0.27), shellMaterial);
+      body.position.y = 0.40;
+      robot.add(body);
+
+      const chestPanel = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.12, 0.018), darkMaterial);
+      chestPanel.position.set(0, 0.41, 0.145);
+      robot.add(chestPanel);
+
+      const chestLight = new THREE.Mesh(new THREE.CircleGeometry(0.035, 18), orangeMaterial);
+      chestLight.position.set(0, 0.41, 0.157);
+      robot.add(chestLight);
+
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.30, 0.31), shellMaterial);
+      head.position.y = 0.69;
+      robot.add(head);
+
+      const face = new THREE.Mesh(new THREE.BoxGeometry(0.31, 0.16, 0.022), darkMaterial);
+      face.position.set(0, 0.69, 0.167);
+      robot.add(face);
+
+      for (const eyeX of [-0.085, 0.085]) {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 16, 12), eyeMaterial);
+        eye.scale.set(1.15, 0.75, 0.40);
+        eye.position.set(eyeX, 0.71, 0.185);
+        robot.add(eye);
       }
 
-      const points = path.map(
-        ([col, row]) => new THREE.Vector3(
-          localX(col + 0.5, parsed.cols),
-          PATH_HEIGHT,
-          localZ(row + 0.5, parsed.rows)
-        )
+      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.07, 16), jointMaterial);
+      neck.position.y = 0.535;
+      robot.add(neck);
+
+      const leftArmPivot = new THREE.Group();
+      leftArmPivot.position.set(-0.245, 0.49, 0);
+      robot.add(leftArmPivot);
+
+      const rightArmPivot = new THREE.Group();
+      rightArmPivot.position.set(0.245, 0.49, 0);
+      robot.add(rightArmPivot);
+
+      for (const [pivot, side] of [[leftArmPivot, -1], [rightArmPivot, 1]]) {
+        const shoulder = new THREE.Mesh(new THREE.SphereGeometry(0.070, 14, 10), jointMaterial);
+        pivot.add(shoulder);
+
+        const arm = new THREE.Mesh(new THREE.BoxGeometry(0.095, 0.27, 0.10), shellMaterial);
+        arm.position.y = -0.135;
+        pivot.add(arm);
+
+        const hand = new THREE.Mesh(new THREE.SphereGeometry(0.065, 14, 10), orangeMaterial);
+        hand.position.y = -0.285;
+        hand.scale.set(0.85, 1.0, 0.85);
+        pivot.add(hand);
+        pivot.rotation.z = side * -0.08;
+      }
+
+      for (const legX of [-0.105, 0.105]) {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.23, 0.12), jointMaterial);
+        leg.position.set(legX, 0.16, 0);
+        robot.add(leg);
+
+        const foot = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.08, 0.22), shellMaterial);
+        foot.position.set(legX, 0.045, 0.035);
+        robot.add(foot);
+      }
+
+      const antennaStem = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.16, 10), jointMaterial);
+      antennaStem.position.y = 0.92;
+      robot.add(antennaStem);
+
+      const antennaLight = new THREE.Mesh(new THREE.SphereGeometry(0.048, 16, 12), orangeMaterial);
+      antennaLight.position.y = 1.015;
+      robot.add(antennaLight);
+
+      const robotGlow = new THREE.PointLight(0xff5c00, 3.2, 1.7, 2);
+      robotGlow.position.set(0, 0.63, 0.24);
+      robot.add(robotGlow);
+
+      robot.scale.setScalar(0.72);
+      robot.userData.leftArmPivot = leftArmPivot;
+      robot.userData.rightArmPivot = rightArmPivot;
+      robot.userData.antennaLight = antennaLight;
+      robot.userData.robotGlow = robotGlow;
+      enableShadows(robot);
+      return robot;
+    }
+
+    function createFinishFlagTexture() {
+      const canvas = document.createElement("canvas");
+      canvas.width = 256;
+      canvas.height = 160;
+      const context = canvas.getContext("2d");
+      const columns = 6;
+      const rows = 4;
+      const tileWidth = canvas.width / columns;
+      const tileHeight = canvas.height / rows;
+
+      for (let row = 0; row < rows; row++) {
+        for (let column = 0; column < columns; column++) {
+          context.fillStyle = (row + column) % 2 === 0 ? "#f3f4f6" : "#171a20";
+          context.fillRect(column * tileWidth, row * tileHeight, tileWidth + 1, tileHeight + 1);
+        }
+      }
+
+      context.strokeStyle = "#ff7200";
+      context.lineWidth = 12;
+      context.strokeRect(6, 6, canvas.width - 12, canvas.height - 12);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      return texture;
+    }
+
+    function createFinishFlag() {
+      const flagGroup = new THREE.Group();
+      const poleMaterial = new THREE.MeshStandardMaterial({ color: 0xb8c0cb, roughness: 0.30, metalness: 0.82 });
+      const orangeMaterial = new THREE.MeshStandardMaterial({ color: 0xff7200, emissive: 0xff2f00, emissiveIntensity: 1.8, roughness: 0.28, metalness: 0.18 });
+
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 0.10, 20), orangeMaterial);
+      base.position.y = 0.05;
+      flagGroup.add(base);
+
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 0.92, 16), poleMaterial);
+      pole.position.y = 0.51;
+      flagGroup.add(pole);
+
+      const topBall = new THREE.Mesh(new THREE.SphereGeometry(0.055, 16, 12), orangeMaterial);
+      topBall.position.y = 0.99;
+      flagGroup.add(topBall);
+
+      const flagGeometry = new THREE.PlaneGeometry(0.48, 0.30, 12, 7);
+      const flagMaterial = new THREE.MeshStandardMaterial({
+        map: createFinishFlagTexture(),
+        side: THREE.DoubleSide,
+        roughness: 0.62,
+        metalness: 0.05
+      });
+      const flag = new THREE.Mesh(flagGeometry, flagMaterial);
+      flag.position.set(0.255, 0.80, 0);
+      flag.userData.basePositions = Float32Array.from(flag.geometry.attributes.position.array);
+      flagGroup.add(flag);
+
+      const flagGlow = new THREE.PointLight(0xff6200, 2.2, 1.6, 2);
+      flagGlow.position.set(0.03, 0.78, 0.10);
+      flagGroup.add(flagGlow);
+
+      flagGroup.userData.flag = flag;
+      flagGroup.userData.flagGlow = flagGlow;
+      enableShadows(flagGroup);
+      return flagGroup;
+    }
+
+    function createMiniRobot() {
+      const robot = new THREE.Group();
+      const shellMaterial = new THREE.MeshStandardMaterial({
+        color: 0xd5dbe4,
+        roughness: 0.42,
+        metalness: 0.48
+      });
+      const darkMaterial = new THREE.MeshStandardMaterial({
+        color: 0x242c37,
+        roughness: 0.56,
+        metalness: 0.28
+      });
+      const orangeMaterial = new THREE.MeshBasicMaterial({
+        color: new THREE.Color().setRGB(5.8, 0.58, 0.02),
+        toneMapped: false
+      });
+
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.40, 0.34, 0.29), shellMaterial);
+      body.position.y = 0.38;
+      robot.add(body);
+
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.30, 0.32), shellMaterial);
+      head.position.y = 0.70;
+      robot.add(head);
+
+      const face = new THREE.Mesh(new THREE.BoxGeometry(0.31, 0.13, 0.025), darkMaterial);
+      face.position.set(0, 0.70, 0.173);
+      robot.add(face);
+
+      for (const eyeX of [-0.085, 0.085]) {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.038, 10, 8), orangeMaterial);
+        eye.scale.set(1.1, 0.7, 0.38);
+        eye.position.set(eyeX, 0.71, 0.19);
+        robot.add(eye);
+      }
+
+      for (const legX of [-0.11, 0.11]) {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.23, 0.13), darkMaterial);
+        leg.position.set(legX, 0.16, 0);
+        robot.add(leg);
+      }
+
+      const antennaStem = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.018, 0.018, 0.16, 8),
+        darkMaterial
+      );
+      antennaStem.position.y = 0.93;
+      robot.add(antennaStem);
+
+      const antennaLight = new THREE.Mesh(new THREE.SphereGeometry(0.052, 10, 8), orangeMaterial);
+      antennaLight.position.y = 1.03;
+      robot.add(antennaLight);
+
+      robot.scale.setScalar(0.78);
+      robot.userData.antennaLight = antennaLight;
+      enableShadows(robot);
+      return robot;
+    }
+
+    function createMiniFinishFlag() {
+      const flagGroup = new THREE.Group();
+      const poleMaterial = new THREE.MeshStandardMaterial({
+        color: 0xaeb8c5,
+        roughness: 0.38,
+        metalness: 0.70
+      });
+      const orangeMaterial = new THREE.MeshBasicMaterial({
+        color: new THREE.Color().setRGB(5.2, 0.48, 0.015),
+        toneMapped: false
+      });
+
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.17, 0.10, 12), orangeMaterial);
+      base.position.y = 0.05;
+      flagGroup.add(base);
+
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.03, 0.90, 10), poleMaterial);
+      pole.position.y = 0.50;
+      flagGroup.add(pole);
+
+      const flag = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.48, 0.30),
+        new THREE.MeshStandardMaterial({
+          map: createFinishFlagTexture(),
+          side: THREE.DoubleSide,
+          roughness: 0.64,
+          metalness: 0.02
+        })
+      );
+      flag.position.set(0.255, 0.78, 0);
+      flagGroup.add(flag);
+
+      enableShadows(flagGroup);
+      return flagGroup;
+    }
+
+    function cellToLocal(parsedMaze, row, column, y = 0) {
+      return new THREE.Vector3(
+        column * CELL_SIZE - parsedMaze.spanX / 2 + CELL_SIZE / 2,
+        y,
+        row * CELL_SIZE - parsedMaze.spanZ / 2 + CELL_SIZE / 2
+      );
+    }
+
+    function normalizedMazeScale(parsedMaze, baseScale = 1) {
+      const longestSpan = Math.max(parsedMaze.spanX, parsedMaze.spanZ);
+      return baseScale * (TARGET_REFERENCE_SPAN / longestSpan);
+    }
+
+    function addTargetMaze(group, parsedMaze) {
+      const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x171b22, roughness: 0.72, metalness: 0.12 });
+      const base = new THREE.Mesh(new THREE.BoxGeometry(parsedMaze.spanX + 0.40, 0.24, parsedMaze.spanZ + 0.40), baseMaterial);
+      base.position.y = -0.14;
+      base.receiveShadow = true;
+      base.castShadow = true;
+      group.add(base);
+
+      const tileGeometry = new THREE.BoxGeometry(CELL_SIZE - 0.035, 0.06, CELL_SIZE - 0.035);
+      const tileMaterial = new THREE.MeshStandardMaterial({ color: 0x11151b, roughness: 0.84, metalness: 0.04 });
+
+      for (let row = 0; row < parsedMaze.rows; row++) {
+        for (let column = 0; column < parsedMaze.columns; column++) {
+          const tile = new THREE.Mesh(tileGeometry, tileMaterial);
+          tile.position.copy(cellToLocal(parsedMaze, row, column, -0.005));
+          tile.receiveShadow = true;
+          group.add(tile);
+        }
+      }
+
+      const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x727986, roughness: 0.56, metalness: 0.13 });
+      const horizontalGeometry = new THREE.BoxGeometry(CELL_SIZE + WALL_THICKNESS, WALL_HEIGHT, WALL_THICKNESS);
+      const verticalGeometry = new THREE.BoxGeometry(WALL_THICKNESS, WALL_HEIGHT, CELL_SIZE + WALL_THICKNESS);
+      const edgeMaterial = new THREE.LineBasicMaterial({ color: 0xa2a9b5, transparent: true, opacity: 0.22 });
+
+      function addWall(position, geometry) {
+        const wall = new THREE.Mesh(geometry, wallMaterial);
+        wall.position.copy(position);
+        wall.castShadow = true;
+        wall.receiveShadow = true;
+        group.add(wall);
+
+        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry, 28), edgeMaterial);
+        edges.position.copy(position);
+        group.add(edges);
+      }
+
+      for (let row = 0; row < parsedMaze.rows; row++) {
+        for (let column = 0; column < parsedMaze.columns; column++) {
+          const centre = cellToLocal(parsedMaze, row, column, 0);
+          const walls = parsedMaze.cells[row][column].walls;
+
+          if (walls[N]) addWall(new THREE.Vector3(centre.x, WALL_HEIGHT / 2, centre.z - CELL_SIZE / 2), horizontalGeometry);
+          if (walls[W]) addWall(new THREE.Vector3(centre.x - CELL_SIZE / 2, WALL_HEIGHT / 2, centre.z), verticalGeometry);
+          if (row === parsedMaze.rows - 1 && walls[S]) addWall(new THREE.Vector3(centre.x, WALL_HEIGHT / 2, centre.z + CELL_SIZE / 2), horizontalGeometry);
+          if (column === parsedMaze.columns - 1 && walls[E]) addWall(new THREE.Vector3(centre.x + CELL_SIZE / 2, WALL_HEIGHT / 2, centre.z), verticalGeometry);
+        }
+      }
+
+      const outerFrame = new THREE.LineSegments(
+        new THREE.EdgesGeometry(new THREE.BoxGeometry(parsedMaze.spanX + 0.42, 0.26, parsedMaze.spanZ + 0.42)),
+        new THREE.LineBasicMaterial({ color: 0x87909c, transparent: true, opacity: 0.32 })
+      );
+      outerFrame.position.y = -0.13;
+      group.add(outerFrame);
+    }
+
+    function addScatteredMaze(group, mazeEntry, position, rotation, scale) {
+      const parsedMaze = mazeEntry.parsed;
+      const mini = new THREE.Group();
+      mini.position.copy(position);
+      mini.rotation.y = rotation;
+      mini.scale.setScalar(scale);
+      group.add(mini);
+      mini.userData.entry = mazeEntry;
+      mini.userData.scaleValue = scale;
+      mini.userData.isScatter = true;
+
+      const wallMaterial = new THREE.MeshStandardMaterial({
+        color: new THREE.Color().setHSL(
+          randomBetween(0.56, 0.62),
+          randomBetween(0.06, 0.13),
+          randomBetween(0.34, 0.48)
+        ),
+        roughness: 0.68,
+        metalness: 0.10,
+        transparent: true,
+        opacity: randomBetween(0.62, 0.84)
+      });
+
+      const horizontalGeometry = new THREE.BoxGeometry(
+        CELL_SIZE + WALL_THICKNESS,
+        WALL_HEIGHT,
+        WALL_THICKNESS
+      );
+      const verticalGeometry = new THREE.BoxGeometry(
+        WALL_THICKNESS,
+        WALL_HEIGHT,
+        CELL_SIZE + WALL_THICKNESS
       );
 
-      const curve = buildRoundedPathCurve(points, PATH_CORNER_RADIUS);
-      const tubularSegments = Math.max(path.length * 12, 24);
+      function addWall(positionValue, geometry) {
+        const wall = new THREE.Mesh(geometry, wallMaterial);
+        wall.position.copy(positionValue);
+        wall.castShadow = true;
+        wall.receiveShadow = true;
+        mini.add(wall);
+      }
 
-      const group = new THREE.Group();
+      for (let row = 0; row < parsedMaze.rows; row++) {
+        for (let column = 0; column < parsedMaze.columns; column++) {
+          const centre = cellToLocal(parsedMaze, row, column, 0);
+          const walls = parsedMaze.cells[row][column].walls;
 
-      const halo = new THREE.Mesh(
-        new THREE.TubeGeometry(curve, tubularSegments, 0.19, 12, false),
-        new THREE.MeshBasicMaterial({
-          color: PATH_HALO_COLOR,
+          if (walls[N]) {
+            addWall(
+              new THREE.Vector3(centre.x, WALL_HEIGHT / 2, centre.z - CELL_SIZE / 2),
+              horizontalGeometry
+            );
+          }
+          if (walls[W]) {
+            addWall(
+              new THREE.Vector3(centre.x - CELL_SIZE / 2, WALL_HEIGHT / 2, centre.z),
+              verticalGeometry
+            );
+          }
+          if (row === parsedMaze.rows - 1 && walls[S]) {
+            addWall(
+              new THREE.Vector3(centre.x, WALL_HEIGHT / 2, centre.z + CELL_SIZE / 2),
+              horizontalGeometry
+            );
+          }
+          if (column === parsedMaze.columns - 1 && walls[E]) {
+            addWall(
+              new THREE.Vector3(centre.x + CELL_SIZE / 2, WALL_HEIGHT / 2, centre.z),
+              verticalGeometry
+            );
+          }
+        }
+      }
+
+      // Each scattered maze has its own solved orange route.
+      const pathPoints = mazeEntry.path.map(([row, column]) =>
+        cellToLocal(parsedMaze, row, column, 0.135)
+      );
+      const routeCurve = createRoundedRoute(pathPoints, 0.22);
+      const routeSegments = Math.max(72, mazeEntry.path.length * 8);
+
+      const miniBeamMaterial = new THREE.MeshBasicMaterial({
+        color: new THREE.Color().setRGB(6.8, 0.62, 0.018),
+        transparent: true,
+        opacity: 0.86,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        toneMapped: false
+      });
+      const miniCoreMaterial = new THREE.MeshBasicMaterial({
+        color: new THREE.Color().setRGB(10.5, 3.7, 0.42),
+        transparent: true,
+        opacity: 0.96,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        toneMapped: false
+      });
+
+      const miniBeam = new THREE.Mesh(
+        new THREE.TubeGeometry(routeCurve, routeSegments, 0.105, 7, false),
+        miniBeamMaterial
+      );
+      const miniCore = new THREE.Mesh(
+        new THREE.TubeGeometry(routeCurve, routeSegments, 0.030, 6, false),
+        miniCoreMaterial
+      );
+      miniBeam.renderOrder = 3;
+      miniCore.renderOrder = 4;
+      mini.add(miniBeam, miniCore);
+
+      // Lightweight robot and flag keep all scattered boards readable without
+      // adding a point light for every small maze.
+      const miniRobot = createMiniRobot();
+      const miniStartPosition = cellToLocal(
+        parsedMaze,
+        parsedMaze.start[0],
+        parsedMaze.start[1],
+        0.035
+      );
+      miniRobot.position.copy(miniStartPosition);
+      if (pathPoints.length > 1) {
+        const nextPoint = pathPoints[1];
+        miniRobot.lookAt(nextPoint.x, miniRobot.position.y, nextPoint.z);
+      }
+      mini.add(miniRobot);
+
+      const miniFinishFlag = createMiniFinishFlag();
+      miniFinishFlag.position.copy(
+        cellToLocal(parsedMaze, parsedMaze.end[0], parsedMaze.end[1], 0.015)
+      );
+      miniFinishFlag.position.x -= 0.18;
+      mini.add(miniFinishFlag);
+
+      const hitArea = new THREE.Mesh(
+        new THREE.BoxGeometry(parsedMaze.spanX + 1.2, 1.15, parsedMaze.spanZ + 1.2),
+        new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
+      );
+      hitArea.position.y = 0.33;
+      mini.add(hitArea);
+      hitArea.userData.scatterRoot = mini;
+      mini.userData.hitArea = hitArea;
+
+      mini.userData.baseScale = scale;
+      mini.userData.hovered = false;
+      mini.userData.wallMaterial = wallMaterial;
+      mini.userData.spin = randomBetween(-0.035, 0.035);
+      mini.userData.floatOffset = randomBetween(0, Math.PI * 2);
+      mini.userData.robot = miniRobot;
+      mini.userData.robotStartY = miniStartPosition.y;
+      mini.userData.beamMaterial = miniBeamMaterial;
+      mini.userData.coreMaterial = miniCoreMaterial;
+      return mini;
+    }
+
+    function chooseScatterPositions(count) {
+      const positions = [];
+      let attempts = 0;
+      const xLimit = BOARD_WIDTH / 2 - 1.4;
+      const zLimit = BOARD_DEPTH / 2 - 1.4;
+
+      while (positions.length < count && attempts < count * 900) {
+        attempts++;
+        const x = randomBetween(-xLimit, xLimit);
+        const z = randomBetween(-zLimit, zLimit);
+        const candidate = new THREE.Vector3(x, -0.02, z);
+
+        const clearsCentre = Math.hypot(x, z) > 6.35;
+        const edgeFactor = Math.min(
+          1,
+          (xLimit - Math.abs(x)) / 4,
+          (zLimit - Math.abs(z)) / 4
+        );
+        const minimumDistance = 1.82 + Math.max(0, edgeFactor) * 0.18;
+        const clearsOthers = positions.every(existing => existing.distanceTo(candidate) > minimumDistance);
+        if (clearsCentre && clearsOthers) positions.push(candidate);
+      }
+
+      return positions;
+    }
+
+    async function main() {
+      const sourceResults = await Promise.all(
+        MAZE_SOURCE_FILES.map(async sourcePath => {
+          const response = await fetch(sourcePath, { cache: "no-store" });
+          if (!response.ok) throw new Error(`Unable to load ${sourcePath} (${response.status}).`);
+          const data = await response.json();
+          if (!Array.isArray(data.samples) || data.samples.length === 0) {
+            throw new Error(`${sourcePath} does not contain samples.`);
+          }
+          return { sourcePath, data };
+        })
+      );
+
+      const parsedSamples = [];
+      for (const { sourcePath, data } of sourceResults) {
+        for (const sample of data.samples) {
+          try {
+            const parsed = parseAsciiMaze(sample.maze);
+            const path = solveMaze(parsed.cells, parsed.start, parsed.end);
+            if (path.length > 1) {
+              parsedSamples.push({
+                sample,
+                parsed,
+                path,
+                phase: data.phase,
+                sourcePath,
+                key: `${data.phase}:${sample.number}`
+              });
+            }
+          } catch (error) {
+            console.warn(`Skipping malformed ${data.phase} sample ${sample.number}:`, error);
+          }
+        }
+      }
+
+      if (parsedSamples.length === 0) throw new Error("No valid mazes could be parsed.");
+
+      const targetIndex = Math.floor(Math.random() * parsedSamples.length);
+      const target = parsedSamples[targetIndex];
+      document.getElementById("sceneSubtitle").textContent =
+        `${SCATTERED_MAZE_COUNT} mixed scattered mazes from 4 datasets · click one to promote it`;
+
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x030508);
+      scene.fog = new THREE.FogExp2(0x030508, 0.014);
+
+      const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 160);
+      const defaultCameraPosition = new THREE.Vector3(23.5, 29.5, 35.5);
+      camera.position.copy(defaultCameraPosition);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.05;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      document.body.prepend(renderer.domElement);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.065;
+      controls.minDistance = 9;
+      controls.maxDistance = 84;
+      controls.maxPolarAngle = Math.PI * 0.485;
+      controls.target.set(0, 0.15, 0);
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 0.55;
+      controls.update();
+
+      const composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+      const bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        BLOOM_STRENGTH,
+        0.62,
+        1.0
+      );
+      composer.addPass(bloomPass);
+      composer.addPass(new OutputPass());
+
+      scene.add(new THREE.HemisphereLight(0x93a4c1, 0x11151d, 1.45));
+
+      const keyLight = new THREE.DirectionalLight(0xe9f2ff, 3.3);
+      keyLight.position.set(8, 18, 10);
+      keyLight.castShadow = true;
+      keyLight.shadow.mapSize.set(2048, 2048);
+      keyLight.shadow.camera.left = -34;
+      keyLight.shadow.camera.right = 34;
+      keyLight.shadow.camera.top = 31;
+      keyLight.shadow.camera.bottom = -31;
+      keyLight.shadow.bias = -0.0004;
+      scene.add(keyLight);
+
+      const rimLight = new THREE.DirectionalLight(0x486a9d, 1.8);
+      rimLight.position.set(-12, 7, -10);
+      scene.add(rimLight);
+
+      // One continuous board: scattered mazes sit directly on this surface,
+      // rather than inside separate cards or thumbnail boxes.
+      const board = new THREE.Mesh(
+        new THREE.BoxGeometry(BOARD_WIDTH, 0.34, BOARD_DEPTH),
+        new THREE.MeshStandardMaterial({ color: 0x0d1117, roughness: 0.91, metalness: 0.04 })
+      );
+      board.position.y = -0.37;
+      board.receiveShadow = true;
+      board.castShadow = true;
+      scene.add(board);
+
+      const boardEdges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(new THREE.BoxGeometry(BOARD_WIDTH, 0.35, BOARD_DEPTH)),
+        new THREE.LineBasicMaterial({ color: 0x49515d, transparent: true, opacity: 0.26 })
+      );
+      boardEdges.position.y = -0.37;
+      scene.add(boardEdges);
+
+      const scatteredGroup = new THREE.Group();
+      scene.add(scatteredGroup);
+      const scatteredMazes = [];
+      const scatterHitAreas = [];
+
+      let currentTargetEntry = null;
+      let currentTargetState = null;
+
+      function disposeMaterial(material) {
+        if (!material) return;
+        if (Array.isArray(material)) {
+          material.forEach(disposeMaterial);
+          return;
+        }
+        if (material.map) material.map.dispose?.();
+        material.dispose?.();
+      }
+
+      function disposeObject(root) {
+        root.traverse(child => {
+          if (child.geometry) child.geometry.dispose?.();
+          if (child.material) disposeMaterial(child.material);
+        });
+      }
+
+      function updateBadge(entry) {
+        document.getElementById("sampleBadge").textContent = `Target · ${entry.phase} #${entry.sample.number} · ${entry.parsed.rows}×${entry.parsed.columns}`;
+      }
+
+      function createTargetState(entry) {
+        const group = new THREE.Group();
+        group.rotation.y = randomBetween(-0.10, 0.10);
+        group.position.y = 0.02;
+        group.scale.setScalar(normalizedMazeScale(entry.parsed));
+        addTargetMaze(group, entry.parsed);
+
+        const pathPoints = entry.path.map(([row, column]) => cellToLocal(entry.parsed, row, column, 0.125));
+        const routeCurve = createRoundedRoute(pathPoints, 0.235);
+        const routeGroup = new THREE.Group();
+        group.add(routeGroup);
+
+        const routeSegments = Math.max(300, entry.path.length * 24);
+        const haloMaterial = new THREE.MeshBasicMaterial({
+          color: new THREE.Color().setRGB(5.5, 0.42, 0.015),
           transparent: true,
-          opacity: 0.11,
+          opacity: 0.12,
           blending: THREE.AdditiveBlending,
           depthWrite: false,
           toneMapped: false
-        })
-      );
-      halo.userData.disposableGeometry = true;
-      halo.userData.disposableMaterial = true;
-      group.add(halo);
-
-      const beam = new THREE.Mesh(
-        new THREE.TubeGeometry(curve, tubularSegments, 0.082, 12, false),
-        new THREE.MeshBasicMaterial({
-          color: PATH_BEAM_COLOR,
+        });
+        const beamMaterial = new THREE.MeshBasicMaterial({
+          color: new THREE.Color().setRGB(7.5, 0.82, 0.025),
+          transparent: true,
+          opacity: 0.96,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
           toneMapped: false
-        })
-      );
-      beam.userData.disposableGeometry = true;
-      beam.userData.disposableMaterial = true;
-      group.add(beam);
-
-      const core = new THREE.Mesh(
-        new THREE.TubeGeometry(curve, tubularSegments, 0.029, 10, false),
-        new THREE.MeshBasicMaterial({
-          color: PATH_CORE_COLOR,
+        });
+        const coreMaterial = new THREE.MeshBasicMaterial({
+          color: new THREE.Color().setRGB(12.0, 4.5, 0.65),
+          transparent: true,
+          opacity: 1,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
           toneMapped: false
-        })
-      );
-      core.userData.disposableGeometry = true;
-      core.userData.disposableMaterial = true;
-      group.add(core);
+        });
 
-      // Small glowing orbs that flow along the route; they reuse the
-      // shared marker-orb geometry (only their per-instance material is
-      // disposed, never the shared geometry).
-      const pulses = [];
+        const halo = new THREE.Mesh(new THREE.TubeGeometry(routeCurve, routeSegments, 0.165, 10, false), haloMaterial);
+        const beam = new THREE.Mesh(new THREE.TubeGeometry(routeCurve, routeSegments, 0.072, 10, false), beamMaterial);
+        const core = new THREE.Mesh(new THREE.TubeGeometry(routeCurve, routeSegments, 0.023, 8, false), coreMaterial);
+        halo.renderOrder = 3;
+        beam.renderOrder = 4;
+        core.renderOrder = 5;
+        routeGroup.add(halo, beam, core);
 
-      for (let index = 0; index < PATH_PULSE_COUNT; index += 1) {
-        const pulseMesh = new THREE.Mesh(
-          markerOrbGeometry,
-          new THREE.MeshBasicMaterial({
-            color: PATH_PULSE_COLOR,
+        const robot = createRobot();
+        const startPosition = cellToLocal(entry.parsed, entry.parsed.start[0], entry.parsed.start[1], 0.035);
+        robot.position.copy(startPosition);
+        if (pathPoints.length > 1) {
+          const nextPoint = pathPoints[1];
+          robot.lookAt(nextPoint.x, robot.position.y, nextPoint.z);
+        }
+        group.add(robot);
+
+        const finishFlag = createFinishFlag();
+        const finishPosition = cellToLocal(entry.parsed, entry.parsed.end[0], entry.parsed.end[1], 0.015);
+        finishFlag.position.copy(finishPosition);
+        finishFlag.position.x -= 0.18;
+        group.add(finishFlag);
+
+        const pulses = [];
+        const pulseGeometry = new THREE.SphereGeometry(0.10, 20, 20);
+        const pulseCount = 8;
+        for (let index = 0; index < pulseCount; index++) {
+          const pulseMaterial = new THREE.MeshBasicMaterial({
+            color: new THREE.Color().setRGB(13.0, 5.0, 0.8),
             transparent: true,
             opacity: 1,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
             toneMapped: false
-          })
-        );
+          });
+          const pulse = new THREE.Mesh(pulseGeometry, pulseMaterial);
+          pulse.userData.offset = index / pulseCount;
+          pulse.renderOrder = 10;
 
-        // A couple of traveling point lights make the orange pulse visibly
-        // wash over nearby floor tiles and wall faces, like the reference.
-        if (index < 2) {
-          const pulseLight = new THREE.PointLight(0xff5a00, 2.2, CELL * 1.75, 2.0);
-          pulseLight.position.y = 0.08;
-          pulseMesh.add(pulseLight);
-          pulseMesh.userData.pulseLight = pulseLight;
-        }
-
-        pulseMesh.userData.disposableMaterial = true;
-        group.add(pulseMesh);
-        pulses.push({ mesh: pulseMesh, offset: index / PATH_PULSE_COUNT });
-      }
-
-      return { group, curve, halo, beam, core, pulses };
-    }
-
-    function createLabelTexture(text) {
-      const labelCanvas = document.createElement("canvas");
-      labelCanvas.width = 256;
-      labelCanvas.height = 128;
-
-      const context = labelCanvas.getContext("2d");
-      context.clearRect(0, 0, 256, 128);
-      context.textAlign = "center";
-      context.textBaseline = "middle";
-      context.font = "bold 82px Arial";
-      context.fillStyle = "#fff3ce";
-      context.shadowColor = "#ff5a00";
-      context.shadowBlur = 24;
-      context.fillText(text, 128, 64);
-
-      const texture = new THREE.CanvasTexture(labelCanvas);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      return texture;
-    }
-
-    const startLabelMaterial = new THREE.SpriteMaterial({
-      map: createLabelTexture("S"),
-      color: 0xffad42,
-      transparent: true,
-      depthTest: true,
-      blending: THREE.AdditiveBlending,
-      toneMapped: false
-    });
-
-    const exitLabelMaterial = new THREE.SpriteMaterial({
-      map: createLabelTexture("E"),
-      color: 0xffad42,
-      transparent: true,
-      depthTest: true,
-      blending: THREE.AdditiveBlending,
-      toneMapped: false
-    });
-
-    function createMarker(group, marker, type, cols, rows) {
-      if (!marker) {
-        return null;
-      }
-
-      const isStart = type === "start";
-      const material = isStart ? startMarkerMaterial : exitMarkerMaterial;
-      const labelMaterial = isStart ? startLabelMaterial : exitLabelMaterial;
-
-      const markerGroup = new THREE.Group();
-
-      markerGroup.position.set(
-        localX(marker.col + 0.5, cols),
-        0,
-        localZ(marker.row + 0.5, rows)
-      );
-
-      const ring = new THREE.Mesh(markerRingGeometry, material);
-      ring.rotation.x = Math.PI / 2;
-      ring.position.y = 0.055;
-      markerGroup.add(ring);
-
-      const orb = new THREE.Mesh(markerOrbGeometry, material);
-      orb.position.y = 0.20;
-      markerGroup.add(orb);
-
-      const label = new THREE.Sprite(labelMaterial);
-      label.position.y = 0.58;
-      label.scale.set(0.84, 0.42, 1);
-      markerGroup.add(label);
-
-      const markerLight = new THREE.PointLight(0xff5800, 2.0, CELL * 1.5, 2.0);
-      markerLight.position.y = 0.22;
-      markerGroup.add(markerLight);
-
-      group.add(markerGroup);
-      return orb;
-    }
-
-    function createWallInstances(parsed, group) {
-      const horizontalPositions = [];
-      const verticalPositions = [];
-
-      parsed.h.forEach((row, boundary) => {
-        row.forEach((hasWall, col) => {
-          if (hasWall) {
-            horizontalPositions.push([
-              localX(col + 0.5, parsed.cols),
-              WALL_HEIGHT / 2,
-              localZ(boundary, parsed.rows)
-            ]);
+          if (index % 3 === 0) {
+            const light = new THREE.PointLight(0xff6b00, 6.5, 2.2, 2);
+            light.position.y = 0.05;
+            pulse.add(light);
+            pulse.userData.light = light;
           }
-        });
-      });
 
-      parsed.v.forEach((row, rowIndex) => {
-        row.forEach((hasWall, boundary) => {
-          if (hasWall) {
-            verticalPositions.push([
-              localX(boundary, parsed.cols),
-              WALL_HEIGHT / 2,
-              localZ(rowIndex + 0.5, parsed.rows)
-            ]);
-          }
-        });
-      });
-
-      if (horizontalPositions.length > 0) {
-        const horizontalWalls = new THREE.InstancedMesh(
-          horizontalWallGeometry,
-          wallMaterial,
-          horizontalPositions.length
-        );
-
-        horizontalWalls.castShadow = true;
-        horizontalWalls.receiveShadow = true;
-
-        horizontalPositions.forEach((position, index) => {
-          identityMatrix.makeTranslation(...position);
-          horizontalWalls.setMatrixAt(index, identityMatrix);
-        });
-
-        horizontalWalls.instanceMatrix.needsUpdate = true;
-        group.add(horizontalWalls);
-      }
-
-      if (verticalPositions.length > 0) {
-        const verticalWalls = new THREE.InstancedMesh(
-          verticalWallGeometry,
-          wallMaterial,
-          verticalPositions.length
-        );
-
-        verticalWalls.castShadow = true;
-        verticalWalls.receiveShadow = true;
-
-        verticalPositions.forEach((position, index) => {
-          identityMatrix.makeTranslation(...position);
-          verticalWalls.setMatrixAt(index, identityMatrix);
-        });
-
-        verticalWalls.instanceMatrix.needsUpdate = true;
-        group.add(verticalWalls);
-      }
-    }
-
-    function createFloorGrid(parsed, group) {
-      const vertices = [];
-      const minX = localX(0, parsed.cols);
-      const maxX = localX(parsed.cols, parsed.cols);
-      const minZ = localZ(0, parsed.rows);
-      const maxZ = localZ(parsed.rows, parsed.rows);
-      const gridY = 0.006;
-
-      for (let col = 0; col <= parsed.cols; col += 1) {
-        const x = localX(col, parsed.cols);
-        vertices.push(x, gridY, minZ, x, gridY, maxZ);
-      }
-
-      for (let row = 0; row <= parsed.rows; row += 1) {
-        const z = localZ(row, parsed.rows);
-        vertices.push(minX, gridY, z, maxX, gridY, z);
-      }
-
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute(
-        "position",
-        new THREE.Float32BufferAttribute(vertices, 3)
-      );
-
-      const grid = new THREE.LineSegments(geometry, floorGridMaterial);
-      grid.userData.disposableGeometry = true;
-      group.add(grid);
-    }
-
-    function createMazeObject(parsed) {
-      const group = new THREE.Group();
-
-      const mazeWidth = parsed.cols * CELL;
-      const mazeDepth = parsed.rows * CELL;
-
-      const baseGeometry = new THREE.BoxGeometry(
-        mazeWidth + 0.72,
-        0.28,
-        mazeDepth + 0.72
-      );
-
-      const floorGeometry = new THREE.BoxGeometry(
-        mazeWidth + 0.10,
-        0.14,
-        mazeDepth + 0.10
-      );
-
-      const base = new THREE.Mesh(baseGeometry, baseMaterial);
-      base.position.y = -0.21;
-      base.receiveShadow = true;
-      // Unlike the wall/marker/floor materials and instanced-wall geometry,
-      // this Mesh's own BoxGeometry is created fresh per call and must be
-      // disposed when the maze is discarded.
-      base.userData.disposableGeometry = true;
-      group.add(base);
-
-      const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-      floor.position.y = -0.07;
-      floor.receiveShadow = true;
-      floor.userData.disposableGeometry = true;
-      group.add(floor);
-      createFloorGrid(parsed, group);
-
-      createWallInstances(parsed, group);
-
-      const startOrb = createMarker(group, parsed.start, "start", parsed.cols, parsed.rows);
-      const exitOrb = createMarker(group, parsed.exit, "exit", parsed.cols, parsed.rows);
-
-      // Only added when a path actually connects S to E; a malformed
-      // sample with no solution simply gets no beam at all.
-      const path = createPathMesh(parsed);
-
-      if (path) {
-        group.add(path.group);
-      }
-
-      return {
-        group,
-        startOrb,
-        exitOrb,
-        path,
-        mazeWidth,
-        mazeDepth
-      };
-    }
-
-    function disposeMazeGroup(group) {
-      group.traverse((object) => {
-        if (object.isInstancedMesh) {
-          // Disposes only this InstancedMesh's own instance buffer, not the
-          // shared BufferGeometry it references.
-          object.dispose();
-          return;
+          routeGroup.add(pulse);
+          pulses.push(pulse);
         }
-
-        if (!object.userData) {
-          return;
-        }
-
-        if (object.userData.disposableGeometry && object.geometry) {
-          object.geometry.dispose();
-        }
-
-        // Separate from disposableGeometry: some meshes (e.g. the path
-        // pulses) reuse a shared geometry but still own a unique
-        // per-instance material that must be disposed here.
-        if (object.userData.disposableMaterial && object.material) {
-          object.material.dispose();
-        }
-      });
-    }
-
-    function deterministicFraction(seed) {
-      const value = Math.sin(seed * 12.9898) * 43758.5453;
-      return value - Math.floor(value);
-    }
-
-    function deterministicAngle(sampleNumber) {
-      // Stable pseudo-random starting angle in the range [-45, 45].
-      return -45 + deterministicFraction(sampleNumber) * 90;
-    }
-
-    function deterministicRotationSpeed(sampleNumber) {
-      const speedDps =
-        AUTO_ROTATE_MIN_DPS +
-        deterministicFraction(sampleNumber + 1000) *
-          (AUTO_ROTATE_MAX_DPS - AUTO_ROTATE_MIN_DPS);
-
-      // Alternate clockwise and anticlockwise rotation.
-      const direction = sampleNumber % 2 === 0 ? -1 : 1;
-
-      return THREE.MathUtils.degToRad(speedDps * direction);
-    }
-
-    function updateOrthographicCamera(camera, aspect, baseHalfHeight) {
-      const halfHeight = aspect < 1
-        ? baseHalfHeight / Math.max(aspect, 0.01)
-        : baseHalfHeight;
-
-      const halfWidth = halfHeight * Math.max(aspect, 0.01);
-
-      camera.left = -halfWidth;
-      camera.right = halfWidth;
-      camera.top = halfHeight;
-      camera.bottom = -halfHeight;
-      camera.updateProjectionMatrix();
-    }
-
-    function resizeRendererToDisplaySize(renderer) {
-      const canvas = renderer.domElement;
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
-      const pixelRatio = renderer.getPixelRatio();
-
-      const expectedWidth = Math.floor(width * pixelRatio);
-      const expectedHeight = Math.floor(height * pixelRatio);
-
-      if (canvas.width !== expectedWidth || canvas.height !== expectedHeight) {
-        renderer.setSize(width, height, false);
-        return true;
-      }
-
-      return false;
-    }
-
-    function createRenderer(canvas) {
-      const renderer = new THREE.WebGLRenderer({
-        canvas,
-        alpha: true,
-        antialias: true,
-        powerPreference: "high-performance"
-      });
-
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      renderer.outputColorSpace = THREE.SRGBColorSpace;
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 0.95;
-
-      return renderer;
-    }
-
-    function createLighting(scene) {
-      scene.background = new THREE.Color(0x07090d);
-      scene.add(new THREE.HemisphereLight(0xb9c9df, 0x08090b, 1.25));
-
-      const keyLight = new THREE.DirectionalLight(0xf1f5ff, 2.65);
-      keyLight.position.set(8, 13, 9);
-      keyLight.castShadow = true;
-      keyLight.shadow.mapSize.set(1024, 1024);
-      scene.add(keyLight);
-
-      const warmRim = new THREE.DirectionalLight(0xff8a4c, 0.52);
-      warmRim.position.set(-7, 4, -8);
-      scene.add(warmRim);
-
-      return keyLight;
-    }
-
-    function createComposer(renderer, scene, camera, bloomStrength) {
-      const composer = new EffectComposer(renderer);
-      composer.setPixelRatio(renderer.getPixelRatio());
-      composer.addPass(new RenderPass(scene, camera));
-
-      const bloomPass = new UnrealBloomPass(
-        new THREE.Vector2(1, 1),
-        bloomStrength,
-        BLOOM_RADIUS,
-        BLOOM_THRESHOLD
-      );
-      composer.addPass(bloomPass);
-      composer.addPass(new OutputPass());
-
-      return { composer, bloomPass };
-    }
-
-    function createSideViewport(canvas) {
-      const renderer = createRenderer(canvas);
-      const scene = new THREE.Scene();
-      const keyLight = createLighting(scene);
-
-      const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
-      camera.position.set(0, 20, 0.001);
-      camera.up.set(0, 0, -1);
-      camera.lookAt(0, 0, 0);
-
-      const { composer, bloomPass } = createComposer(
-        renderer,
-        scene,
-        camera,
-        SIDE_BLOOM_STRENGTH
-      );
-
-      return {
-        renderer,
-        composer,
-        bloomPass,
-        scene,
-        camera,
-        keyLight,
-        group: null,
-        startOrb: null,
-        exitOrb: null,
-        path: null,
-        baseHalfHeight: MIN_ORTHO_HALF_HEIGHT,
-        initialRotation: 0,
-        rotationSpeed: 0
-      };
-    }
-
-    function createCenterViewport(canvas) {
-      const renderer = createRenderer(canvas);
-      const scene = new THREE.Scene();
-      const keyLight = createLighting(scene);
-
-      const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
-
-      const controls = new OrbitControls(camera, canvas);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.08;
-      controls.rotateSpeed = 0.85;
-      controls.zoomSpeed = 0.9;
-      controls.panSpeed = 0.7;
-      controls.minPolarAngle = THREE.MathUtils.degToRad(12);
-      controls.maxPolarAngle = THREE.MathUtils.degToRad(85);
-      // autoRotate/autoRotateSpeed are set per-sample in loadCenterViewport.
-
-      const { composer, bloomPass } = createComposer(
-        renderer,
-        scene,
-        camera,
-        CENTER_BLOOM_STRENGTH
-      );
-
-      return {
-        renderer,
-        composer,
-        bloomPass,
-        scene,
-        camera,
-        controls,
-        keyLight,
-        group: null,
-        startOrb: null,
-        exitOrb: null,
-        path: null
-      };
-    }
-
-    function buildMazeIntoViewport(viewport, sample) {
-      const parsed = parseMaze(sample.maze);
-      const maze = createMazeObject(parsed);
-
-      const boundingRadius = Math.sqrt(
-        (maze.mazeWidth / 2) ** 2 + (maze.mazeDepth / 2) ** 2
-      );
-
-      viewport.scene.add(maze.group);
-      viewport.group = maze.group;
-      viewport.startOrb = maze.startOrb;
-      viewport.exitOrb = maze.exitOrb;
-      viewport.path = maze.path;
-
-      const shadowExtent = Math.max(boundingRadius * 1.2, MIN_SHADOW_EXTENT);
-      viewport.keyLight.shadow.camera.left = -shadowExtent;
-      viewport.keyLight.shadow.camera.right = shadowExtent;
-      viewport.keyLight.shadow.camera.top = shadowExtent;
-      viewport.keyLight.shadow.camera.bottom = -shadowExtent;
-      viewport.keyLight.shadow.camera.updateProjectionMatrix();
-
-      return boundingRadius;
-    }
-
-    function clearViewport(viewport) {
-      if (viewport.group) {
-        viewport.scene.remove(viewport.group);
-        disposeMazeGroup(viewport.group);
-        viewport.group = null;
-        viewport.path = null;
-      }
-    }
-
-    function loadSideViewport(viewport, sample) {
-      clearViewport(viewport);
-
-      const boundingRadius = buildMazeIntoViewport(viewport, sample);
-
-      viewport.baseHalfHeight = Math.max(
-        boundingRadius * ORTHO_PADDING,
-        MIN_ORTHO_HALF_HEIGHT
-      );
-
-      viewport.initialRotation = THREE.MathUtils.degToRad(
-        deterministicAngle(sample.number)
-      );
-      viewport.rotationSpeed = deterministicRotationSpeed(sample.number);
-      viewport.group.rotation.y = viewport.initialRotation;
-    }
-
-    function loadCenterViewport(sample) {
-      clearViewport(centerViewport);
-
-      const boundingRadius = buildMazeIntoViewport(centerViewport, sample);
-
-      const azimuth = THREE.MathUtils.degToRad(35);
-      const polar = THREE.MathUtils.degToRad(45);
-      const distance = boundingRadius * 2.4;
-
-      centerViewport.camera.position.setFromSphericalCoords(
-        distance,
-        polar,
-        azimuth
-      );
-
-      centerViewport.controls.target.set(0, 0, 0);
-      centerViewport.controls.minDistance = boundingRadius * 1.1;
-      centerViewport.controls.maxDistance = boundingRadius * 4.5;
-
-      // Spin by default, same per-sample speed/direction as the idle side
-      // previews; OrbitControls automatically pauses this while the user
-      // is dragging and resumes it once they let go.
-      const orbitDegreesPerSecond = THREE.MathUtils.radToDeg(
-        deterministicRotationSpeed(sample.number)
-      );
-      centerViewport.controls.autoRotate = true;
-      centerViewport.controls.autoRotateSpeed = orbitDegreesPerSecond / 6;
-
-      centerViewport.controls.update();
-    }
-
-    const canvasCenter = document.getElementById("canvasCenter");
-    const caption = document.getElementById("caption");
-    const carouselRow = document.getElementById("carouselRow");
-    const navLeft = document.getElementById("navLeft");
-    const navRight = document.getElementById("navRight");
-
-    // sideSlots[i] (i = 0..SIDE_COUNT-1) holds the viewport/label for the
-    // preview offset (i + 1) samples from the center, on each side.
-    function createSideSlots(side) {
-      return Array.from({ length: SIDE_COUNT }, (_, i) => {
-        const offset = i + 1;
 
         return {
-          viewport: createSideViewport(
-            document.getElementById(`canvas${side}${offset}`)
-          ),
-          label: document.getElementById(`label${side}${offset}`)
+          entry,
+          group,
+          routeCurve,
+          haloMaterial,
+          beamMaterial,
+          coreMaterial,
+          robot,
+          startPosition,
+          finishFlag,
+          pulses
         };
-      });
-    }
+      }
 
-    const leftSlots = createSideSlots("Left");
-    const rightSlots = createSideSlots("Right");
-    const centerViewport = createCenterViewport(canvasCenter);
+      function setTarget(entry) {
+        if (currentTargetState) {
+          scene.remove(currentTargetState.group);
+          disposeObject(currentTargetState.group);
+        }
+        currentTargetEntry = entry;
+        currentTargetState = createTargetState(entry);
+        scene.add(currentTargetState.group);
+        updateBadge(entry);
+      }
 
-    document.querySelectorAll(".slot-side[data-nav]").forEach((element) => {
-      const offset = Number(element.dataset.nav);
-      element.addEventListener("click", () => goTo(offset));
-    });
+      function addScatter(entry, position, rotation, scale) {
+        const mini = addScatteredMaze(scatteredGroup, entry, position, rotation, scale);
+        scatteredMazes.push(mini);
+        scatterHitAreas.push(mini.userData.hitArea);
+        return mini;
+      }
 
-    const DEFAULT_SAMPLE_NUMBER = 10;
+      function removeScatter(mini) {
+        const index = scatteredMazes.indexOf(mini);
+        if (index >= 0) scatteredMazes.splice(index, 1);
+        const hitIndex = scatterHitAreas.indexOf(mini.userData.hitArea);
+        if (hitIndex >= 0) scatterHitAreas.splice(hitIndex, 1);
+        scatteredGroup.remove(mini);
+        disposeObject(mini);
+      }
 
-    const samplesCache = {};
-    let currentPhase = null;
-    let centerIndex = 0;
+      function promoteScatterToTarget(mini) {
+        if (!mini || !mini.userData?.entry || mini.userData.entry === currentTargetEntry) return;
+        const incomingEntry = mini.userData.entry;
+        const outgoingEntry = currentTargetEntry;
+        const replacementPosition = mini.position.clone();
+        const replacementRotation = mini.rotation.y;
+        const clickedWorldSpan = Math.max(
+          incomingEntry.parsed.spanX,
+          incomingEntry.parsed.spanZ
+        ) * (mini.userData.scaleValue ?? mini.scale.x);
+        const replacementScale = clickedWorldSpan / Math.max(
+          outgoingEntry.parsed.spanX,
+          outgoingEntry.parsed.spanZ
+        );
+        removeScatter(mini);
+        setTarget(incomingEntry);
+        addScatter(outgoingEntry, replacementPosition, replacementRotation, replacementScale);
+      }
 
-    function defaultIndexFor(samples) {
-      const index = samples.findIndex(
-        (sample) => sample.number === DEFAULT_SAMPLE_NUMBER
+      setTarget(target);
+
+      const scatterCandidates = buildMixedScatterCandidates(
+        parsedSamples,
+        currentTargetEntry.key,
+        SCATTERED_MAZE_COUNT
       );
-
-      return index >= 0 ? index : 0;
-    }
-
-    function pulseCarousel() {
-      carouselRow.classList.remove("pulse");
-      // Force a reflow so re-adding the class restarts the CSS animation.
-      void carouselRow.offsetWidth;
-      carouselRow.classList.add("pulse");
-    }
-
-    function rebuildCarousel() {
-      const samples = samplesCache[currentPhase];
-      const total = samples.length;
-
-      leftSlots.forEach((slot, i) => {
-        const offset = i + 1;
-        const sample = samples[(centerIndex - offset + total) % total];
-
-        loadSideViewport(slot.viewport, sample);
-        slot.label.textContent = `#${sample.number}`;
+      const scatterPositions = chooseScatterPositions(scatterCandidates.length);
+      scatterPositions.forEach((position, index) => {
+        addScatter(
+          scatterCandidates[index],
+          position,
+          randomBetween(-Math.PI, Math.PI),
+          normalizedMazeScale(scatterCandidates[index].parsed, randomBetween(0.17, 0.255))
+        );
       });
 
-      rightSlots.forEach((slot, i) => {
-        const offset = i + 1;
-        const sample = samples[(centerIndex + offset) % total];
+      const raycaster = new THREE.Raycaster();
+      const pointer = new THREE.Vector2();
+      let pointerDown = null;
+      let hoveredScatter = null;
 
-        loadSideViewport(slot.viewport, sample);
-        slot.label.textContent = `#${sample.number}`;
-      });
-
-      const centerSample = samples[centerIndex];
-      loadCenterViewport(centerSample);
-
-      caption.textContent =
-        `${currentPhase} · sample ${centerSample.number} / ${centerSample.total}`;
-
-      pulseCarousel();
-    }
-
-    function goTo(offset) {
-      if (!currentPhase) {
-        return;
+      function pickScatter(clientX, clientY) {
+        pointer.x = (clientX / window.innerWidth) * 2 - 1;
+        pointer.y = -(clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(pointer, camera);
+        const hits = raycaster.intersectObjects(scatterHitAreas, false);
+        return hits[0]?.object?.userData?.scatterRoot ?? null;
       }
 
-      const total = samplesCache[currentPhase].length;
-      centerIndex = (centerIndex + offset + total) % total;
-      rebuildCarousel();
-    }
-
-    async function loadPhase(phase) {
-      document.querySelectorAll(".phase-tab").forEach((button) => {
-        button.classList.toggle("active", button.dataset.phase === phase);
-      });
-
-      if (!samplesCache[phase]) {
-        caption.textContent = `Loading ${phase}…`;
-
-        const response = await fetch(`data/${phase}.json`);
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch data/${phase}.json: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.phase !== phase) {
-          console.warn(`Expected phase "${phase}", received "${data.phase}"`);
-        }
-
-        samplesCache[phase] = [...data.samples].sort((a, b) => a.number - b.number);
+      function setHoveredScatter(nextScatter) {
+        if (hoveredScatter === nextScatter) return;
+        if (hoveredScatter) hoveredScatter.userData.hovered = false;
+        hoveredScatter = nextScatter;
+        if (hoveredScatter) hoveredScatter.userData.hovered = true;
+        renderer.domElement.style.cursor = hoveredScatter ? "pointer" : "grab";
       }
 
-      currentPhase = phase;
-      centerIndex = defaultIndexFor(samplesCache[phase]);
-      rebuildCarousel();
-    }
+      renderer.domElement.style.cursor = "grab";
 
-    document.querySelectorAll(".phase-tab").forEach((button) => {
-      button.addEventListener("click", () => {
-        if (button.dataset.phase === currentPhase) {
-          return;
+      renderer.domElement.addEventListener("pointermove", event => {
+        if (pointerDown) return;
+        setHoveredScatter(pickScatter(event.clientX, event.clientY));
+      });
+
+      renderer.domElement.addEventListener("pointerleave", () => {
+        pointerDown = null;
+        setHoveredScatter(null);
+      });
+
+      renderer.domElement.addEventListener("pointerdown", event => {
+        pointerDown = { x: event.clientX, y: event.clientY };
+        renderer.domElement.style.cursor = "grabbing";
+      });
+
+      renderer.domElement.addEventListener("pointerup", event => {
+        if (!pointerDown) return;
+        const moved = Math.hypot(event.clientX - pointerDown.x, event.clientY - pointerDown.y);
+        pointerDown = null;
+        const picked = moved <= 6 ? pickScatter(event.clientX, event.clientY) : null;
+        if (picked) {
+          setHoveredScatter(null);
+          promoteScatterToTarget(picked);
         }
+        setHoveredScatter(pickScatter(event.clientX, event.clientY));
+      });
 
-        loadPhase(button.dataset.phase).catch((error) => {
-          console.error(error);
-          caption.textContent = `Failed to load ${button.dataset.phase}`;
+      const settings = { speed: 1, flicker: 0.35, paused: false };
+      const speedInput = document.getElementById("speed");
+      const flickerInput = document.getElementById("flicker");
+      const speedValue = document.getElementById("speedValue");
+      const flickerValue = document.getElementById("flickerValue");
+
+      speedInput.addEventListener("input", () => {
+        settings.speed = Number(speedInput.value);
+        speedValue.textContent = `${settings.speed.toFixed(2)}×`;
+      });
+
+      flickerInput.addEventListener("input", () => {
+        settings.flicker = Number(flickerInput.value);
+        flickerValue.textContent = `${Math.round(settings.flicker * 100)}%`;
+      });
+
+      const pauseButton = document.getElementById("pauseButton");
+      pauseButton.addEventListener("click", () => {
+        settings.paused = !settings.paused;
+        pauseButton.textContent = settings.paused ? "Resume beam" : "Pause beam";
+        pauseButton.classList.toggle("active", settings.paused);
+      });
+
+      const rotateButton = document.getElementById("rotateButton");
+      rotateButton.addEventListener("click", () => {
+        controls.autoRotate = !controls.autoRotate;
+        rotateButton.classList.toggle("active", controls.autoRotate);
+      });
+
+      document.getElementById("topButton").addEventListener("click", () => {
+        camera.position.set(0.01, 49, 0.01);
+        controls.target.set(0, 0, 0);
+        controls.update();
+      });
+
+      document.getElementById("resetButton").addEventListener("click", () => {
+        camera.position.copy(defaultCameraPosition);
+        controls.target.set(0, 0.15, 0);
+        controls.update();
+      });
+
+      const clock = new THREE.Clock();
+      let routeTime = 0;
+
+      function animate() {
+        const delta = Math.min(clock.getDelta(), 0.05);
+        const elapsed = clock.elapsedTime;
+        if (!settings.paused) routeTime += delta * settings.speed;
+
+        const rawFlicker =
+          Math.sin(elapsed * 13.0) * 0.52 +
+          Math.sin(elapsed * 29.0 + 1.2) * 0.30 +
+          Math.sin(elapsed * 47.0 + 0.5) * 0.18;
+        const flicker = 1 + rawFlicker * 0.11 * settings.flicker;
+
+        const targetState = currentTargetState;
+        targetState.haloMaterial.opacity = 0.10 + 0.065 * flicker * settings.flicker;
+        targetState.beamMaterial.opacity = THREE.MathUtils.clamp(0.89 + flicker * 0.08, 0.82, 1);
+        targetState.coreMaterial.opacity = THREE.MathUtils.clamp(0.90 + flicker * 0.10, 0.84, 1);
+
+        // Bloom is intentionally fixed and never animated or user-adjustable.
+        bloomPass.strength = BLOOM_STRENGTH;
+
+        targetState.robot.position.y = targetState.startPosition.y + Math.sin(elapsed * 2.4) * 0.025;
+        targetState.robot.rotation.z = Math.sin(elapsed * 1.35) * 0.022;
+        targetState.robot.userData.leftArmPivot.rotation.x = Math.sin(elapsed * 2.2) * 0.14;
+        targetState.robot.userData.rightArmPivot.rotation.x = -Math.sin(elapsed * 2.2) * 0.14;
+
+        const robotBlink = 0.55 + 0.45 * Math.sin(elapsed * 5.5);
+        targetState.robot.userData.antennaLight.scale.setScalar(0.86 + robotBlink * 0.28);
+        targetState.robot.userData.robotGlow.intensity = 2.2 + robotBlink * 2.7;
+
+        const flagMesh = targetState.finishFlag.userData.flag;
+        const flagPosition = flagMesh.geometry.attributes.position;
+        const basePositions = flagMesh.userData.basePositions;
+
+        for (let vertex = 0; vertex < flagPosition.count; vertex++) {
+          const offset = vertex * 3;
+          const x = basePositions[offset];
+          const y = basePositions[offset + 1];
+          const waveStrength = THREE.MathUtils.clamp((x + 0.24) / 0.48, 0, 1);
+          flagPosition.setXYZ(
+            vertex,
+            x,
+            y,
+            basePositions[offset + 2] + Math.sin(elapsed * 4.0 + x * 11.0 + y * 4.0) * 0.045 * waveStrength
+          );
+        }
+        flagPosition.needsUpdate = true;
+        flagMesh.geometry.computeVertexNormals();
+        targetState.finishFlag.userData.flagGlow.intensity = 1.5 + (0.5 + 0.5 * Math.sin(elapsed * 3.2)) * 1.4;
+
+        targetState.pulses.forEach((pulse, index) => {
+          const t = (routeTime * 0.135 + pulse.userData.offset) % 1;
+          pulse.position.copy(targetState.routeCurve.getPointAt(t));
+          const wave = 0.5 + 0.5 * Math.sin(elapsed * 15 + index * 1.55);
+          const scale = 0.74 + wave * 0.64;
+          pulse.scale.setScalar(scale);
+          pulse.material.opacity = 0.58 + wave * 0.42;
+          if (pulse.userData.light) pulse.userData.light.intensity = 4.2 + wave * 5.5;
         });
-      });
-    });
 
-    navLeft.addEventListener("click", () => goTo(-1));
-    navRight.addEventListener("click", () => goTo(1));
+        scatteredMazes.forEach((mini, index) => {
+          const phase = elapsed * 0.7 + mini.userData.floatOffset + index;
+          mini.rotation.y += mini.userData.spin * delta;
+          mini.position.y = -0.02 + Math.sin(phase) * 0.018;
 
-    window.addEventListener("keydown", (event) => {
-      if (event.key === "ArrowLeft") {
-        event.preventDefault();
-        goTo(-1);
-      } else if (event.key === "ArrowRight") {
-        event.preventDefault();
-        goTo(1);
+          const desiredScale = mini.userData.baseScale * (mini.userData.hovered ? 1.14 : 1);
+          const smoothedScale = THREE.MathUtils.damp(mini.scale.x, desiredScale, 12, delta);
+          mini.scale.setScalar(smoothedScale);
+          mini.userData.wallMaterial.emissive.setHex(mini.userData.hovered ? 0x241005 : 0x000000);
+          mini.userData.wallMaterial.emissiveIntensity = mini.userData.hovered ? 0.52 : 0;
+
+          const miniRobot = mini.userData.robot;
+          miniRobot.position.y = mini.userData.robotStartY + Math.sin(elapsed * 2.0 + index * 0.7) * 0.045;
+          miniRobot.rotation.z = Math.sin(elapsed * 1.25 + index) * 0.035;
+          miniRobot.userData.antennaLight.scale.setScalar(
+            0.84 + (0.5 + 0.5 * Math.sin(elapsed * 4.8 + index)) * 0.34
+          );
+
+          const hoverBoost = mini.userData.hovered ? 0.12 : 0;
+          const miniGlow = 0.72 + (0.5 + 0.5 * Math.sin(elapsed * 3.1 + index * 0.8)) * 0.18 + hoverBoost;
+          mini.userData.beamMaterial.opacity = Math.min(1, miniGlow);
+          mini.userData.coreMaterial.opacity = Math.min(1, miniGlow + 0.14);
+        });
+
+        controls.update();
+        composer.render();
       }
-    });
 
-    function updatePathAnimation(viewport, elapsed) {
-      const path = viewport.path;
+      renderer.setAnimationLoop(animate);
 
-      if (!path) {
-        return;
-      }
-
-      // Combined slow and fast oscillations read as a controlled electric
-      // flicker rather than a single steady pulse.
-      const flicker =
-        0.88 +
-        Math.sin(elapsed * 8.0) * 0.065 +
-        Math.sin(elapsed * 21.0) * 0.035 +
-        Math.sin(elapsed * 47.0) * 0.018;
-
-      path.halo.material.opacity = 0.045 + flicker * 0.075;
-
-      // HDR-like material values give UnrealBloomPass a hot white/orange core
-      // while preserving the saturated orange body of the beam.
-      path.beam.material.color.setRGB(
-        2.15 * flicker,
-        0.38 * flicker,
-        0.008
-      );
-      path.core.material.color.setRGB(
-        4.3 * flicker,
-        1.35 * flicker,
-        0.18 * flicker
-      );
-
-      path.pulses.forEach(({ mesh, offset }, index) => {
-        const t = (elapsed * 0.18 + offset) % 1;
-        const point = path.curve.getPointAt(t);
-        mesh.position.copy(point);
-
-        const flash = 0.58 + 0.42 * Math.sin(elapsed * 16 + index * 1.75);
-        mesh.scale.setScalar(0.48 + flash * 0.42);
-        mesh.material.opacity = 0.48 + flash * 0.32;
-
-        if (mesh.userData.pulseLight) {
-          mesh.userData.pulseLight.intensity = 1.2 + flash * 2.2;
-        }
+      window.addEventListener("resize", () => {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+        composer.setSize(width, height);
+        bloomPass.resolution.set(width, height);
       });
     }
 
-    function updateSideViewport(viewport, elapsed) {
-      if (!viewport.group) {
-        return;
-      }
-
-      const width = viewport.renderer.domElement.clientWidth;
-      const height = viewport.renderer.domElement.clientHeight;
-
-      if (width === 0 || height === 0) {
-        return;
-      }
-
-      if (resizeRendererToDisplaySize(viewport.renderer)) {
-        viewport.composer.setSize(width, height);
-      }
-      updateOrthographicCamera(viewport.camera, width / height, viewport.baseHalfHeight);
-
-      viewport.group.rotation.y = viewport.initialRotation + elapsed * viewport.rotationSpeed;
-
-      if (viewport.startOrb) {
-        viewport.startOrb.position.y = 0.20 + Math.sin(elapsed * 2.4) * 0.035;
-      }
-
-      if (viewport.exitOrb) {
-        viewport.exitOrb.position.y = 0.20 + Math.sin(elapsed * 2.4 + Math.PI) * 0.035;
-      }
-
-      updatePathAnimation(viewport, elapsed);
-
-      viewport.composer.render();
-    }
-
-    function updateCenterViewport(elapsed, deltaSeconds) {
-      if (!centerViewport.group) {
-        return;
-      }
-
-      const width = centerViewport.renderer.domElement.clientWidth;
-      const height = centerViewport.renderer.domElement.clientHeight;
-
-      if (width === 0 || height === 0) {
-        return;
-      }
-
-      if (resizeRendererToDisplaySize(centerViewport.renderer)) {
-        centerViewport.composer.setSize(width, height);
-      }
-
-      const aspect = width / height;
-
-      if (centerViewport.camera.aspect !== aspect) {
-        centerViewport.camera.aspect = aspect;
-        centerViewport.camera.updateProjectionMatrix();
-      }
-
-      if (centerViewport.startOrb) {
-        centerViewport.startOrb.position.y = 0.20 + Math.sin(elapsed * 2.4) * 0.035;
-      }
-
-      if (centerViewport.exitOrb) {
-        centerViewport.exitOrb.position.y =
-          0.20 + Math.sin(elapsed * 2.4 + Math.PI) * 0.035;
-      }
-
-      updatePathAnimation(centerViewport, elapsed);
-
-      // Pass real elapsed time explicitly: OrbitControls.update()'s no-arg
-      // fallback assumes a fixed 60 calls/sec and drifts if the actual
-      // frame rate differs (e.g. a throttled/background tab), which would
-      // make autoRotate stall relative to wall-clock time.
-      centerViewport.controls.update(deltaSeconds);
-      centerViewport.composer.render();
-    }
-
-    const clock = new THREE.Clock();
-    let elapsedSeconds = 0;
-
-    function animate() {
-      const deltaSeconds = clock.getDelta();
-      elapsedSeconds += deltaSeconds;
-
-      leftSlots.forEach((slot) => updateSideViewport(slot.viewport, elapsedSeconds));
-      rightSlots.forEach((slot) => updateSideViewport(slot.viewport, elapsedSeconds));
-      updateCenterViewport(elapsedSeconds, deltaSeconds);
-
-      requestAnimationFrame(animate);
-    }
-
-    loadPhase(DEFAULT_PHASE).catch((error) => {
+    main().catch(error => {
       console.error(error);
-      caption.textContent = `Failed to load ${DEFAULT_PHASE}`;
+      document.getElementById("error").style.display = "grid";
     });
-
-    animate();
   </script>
 </body>
 </html>
