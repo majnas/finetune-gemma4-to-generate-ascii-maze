@@ -80,6 +80,40 @@
       box-shadow: 0 0 12px rgba(255, 90, 0, 0.95);
     }
 
+    .github-badge {
+      position: fixed;
+      top: 20px;
+      right: 22px;
+      z-index: 20;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 11px;
+      color: #e7ebf1;
+      font-size: 12px;
+      font-weight: 650;
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 999px;
+      background: rgba(7, 10, 15, 0.72);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.34);
+      backdrop-filter: blur(10px);
+      transition: 140ms ease;
+    }
+
+    .github-badge:hover {
+      transform: translateY(-1px);
+      color: #fff;
+      border-color: rgba(255, 138, 33, 0.55);
+      background: rgba(24, 18, 13, 0.84);
+    }
+
+    .github-badge svg {
+      width: 17px;
+      height: 17px;
+      fill: currentColor;
+    }
+
     .hint {
       position: fixed;
       left: 50%;
@@ -118,6 +152,13 @@
         top: 14px;
         left: 15px;
       }
+
+      .github-badge {
+        top: 14px;
+        right: 15px;
+      }
+
+      .github-badge span { display: none; }
     }
   </style>
 
@@ -137,6 +178,19 @@
     <p id="sceneSubtitle">Loading mixed maze datasets…</p>
     <div class="badge" id="sampleBadge">Loading target maze…</div>
   </div>
+
+  <a
+    class="github-badge"
+    href="https://github.com/majnas/finetune-gemma4-to-generate-ascii-maze"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="View this project on GitHub"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 .7a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2.23c-3.22.7-3.9-1.37-3.9-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.72 1.27 3.38.97.1-.75.4-1.27.74-1.56-2.57-.29-5.27-1.28-5.27-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.16 1.18a10.9 10.9 0 0 1 5.75 0c2.19-1.49 3.16-1.18 3.16-1.18.63 1.58.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.71 5.39-5.29 5.68.42.36.79 1.06.79 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z" />
+    </svg>
+    <span>View on GitHub</span>
+  </a>
 
   <div class="hint">Click a scattered maze to make it the target · Drag to orbit · Scroll to zoom · Right-drag to pan</div>
 
@@ -934,8 +988,9 @@
 
       if (parsedSamples.length === 0) throw new Error("No valid mazes could be parsed.");
 
-      const targetIndex = Math.floor(Math.random() * parsedSamples.length);
-      const target = parsedSamples[targetIndex];
+      const target = parsedSamples.find(
+        entry => entry.phase === "varNxN" && Number(entry.sample.number) === 72
+      ) ?? parsedSamples[Math.floor(Math.random() * parsedSamples.length)];
       document.getElementById("sceneSubtitle").textContent =
         `${SCATTERED_MAZE_COUNT} endlessly recycled mazes from 4 datasets · pan to explore`;
 
@@ -945,7 +1000,7 @@
       scene.fog = new THREE.FogExp2(0x030508, 0.014);
 
       const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 220);
-      const defaultCameraPosition = new THREE.Vector3(23.5, 29.5, 35.5);
+      const defaultCameraPosition = new THREE.Vector3(0.01, 18, 0.01);
       camera.position.copy(defaultCameraPosition);
 
       const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
