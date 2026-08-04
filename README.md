@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://majnas.github.io/finetune-gemma4-to-generate-ascii-maze/">
-    <img src="assets/varNxN_sample10_topview.gif" alt="varNxN sample 10, top view" />
+    <img src="assets/maze_board_recording.gif" alt="varNxN sample 10, top view" width="1280" />
   </a>
 </p>
 
