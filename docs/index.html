@@ -80,110 +80,6 @@
       box-shadow: 0 0 12px rgba(255, 90, 0, 0.95);
     }
 
-    .panel {
-      position: fixed;
-      right: 18px;
-      top: 18px;
-      width: min(286px, calc(100vw - 36px));
-      padding: 16px;
-      z-index: 20;
-      border: 1px solid rgba(255, 255, 255, 0.10);
-      border-radius: 16px;
-      background: rgba(7, 10, 15, 0.74);
-      box-shadow:
-        0 16px 50px rgba(0, 0, 0, 0.45),
-        inset 0 1px 0 rgba(255, 255, 255, 0.06);
-      backdrop-filter: blur(14px);
-    }
-
-    .panel-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 13px;
-      color: #f5f7fb;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    .fixed {
-      color: #ff9a3d;
-      font-size: 10px;
-      font-weight: 750;
-    }
-
-    .control { margin-top: 12px; }
-
-    .control-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-      color: #c9d1dc;
-      font-size: 12px;
-    }
-
-    .value {
-      color: #ff9a3d;
-      font-variant-numeric: tabular-nums;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      height: 4px;
-      appearance: none;
-      border-radius: 999px;
-      outline: none;
-      background: linear-gradient(90deg, #ff6200, #ffb35d);
-    }
-
-    input[type="range"]::-webkit-slider-thumb {
-      width: 15px;
-      height: 15px;
-      appearance: none;
-      cursor: pointer;
-      border: 2px solid #ffe1bd;
-      border-radius: 50%;
-      background: #ff7b0c;
-      box-shadow: 0 0 12px rgba(255, 111, 0, 0.85);
-    }
-
-    .buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 9px;
-      margin-top: 15px;
-    }
-
-    button {
-      appearance: none;
-      padding: 9px 10px;
-      cursor: pointer;
-      color: #e9edf3;
-      font: inherit;
-      font-size: 12px;
-      font-weight: 650;
-      border: 1px solid rgba(255, 255, 255, 0.11);
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.06);
-      transition: 130ms ease;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      border-color: rgba(255, 143, 45, 0.5);
-      background: rgba(255, 126, 28, 0.12);
-    }
-
-    button.active {
-      color: #fff2e4;
-      border-color: rgba(255, 127, 24, 0.55);
-      background: rgba(255, 112, 15, 0.18);
-      box-shadow: inset 0 0 18px rgba(255, 95, 0, 0.08);
-    }
-
     .hint {
       position: fixed;
       left: 50%;
@@ -218,13 +114,6 @@
       .header p,
       .hint { display: none; }
 
-      .panel {
-        top: auto;
-        right: 12px;
-        bottom: 12px;
-        width: calc(100vw - 24px);
-      }
-
       .header {
         top: 14px;
         left: 15px;
@@ -248,36 +137,6 @@
     <p id="sceneSubtitle">Loading mixed maze datasets…</p>
     <div class="badge" id="sampleBadge">Loading target maze…</div>
   </div>
-
-  <section class="panel" aria-label="Maze controls">
-    <div class="panel-title">
-      Beam controls
-      <span class="fixed">Bloom 0.03</span>
-    </div>
-
-    <div class="control">
-      <div class="control-row">
-        <label for="speed">Pulse speed</label>
-        <span class="value" id="speedValue">1.00×</span>
-      </div>
-      <input id="speed" type="range" min="0" max="2.5" step="0.05" value="1" />
-    </div>
-
-    <div class="control">
-      <div class="control-row">
-        <label for="flicker">Flicker amount</label>
-        <span class="value" id="flickerValue">35%</span>
-      </div>
-      <input id="flicker" type="range" min="0" max="1" step="0.05" value="0.35" />
-    </div>
-
-    <div class="buttons">
-      <button id="pauseButton">Pause beam</button>
-      <button id="rotateButton" class="active">Auto rotate</button>
-      <button id="topButton">Top view</button>
-      <button id="resetButton">Reset camera</button>
-    </div>
-  </section>
 
   <div class="hint">Click a scattered maze to make it the target · Drag to orbit · Scroll to zoom · Right-drag to pan</div>
 
@@ -306,6 +165,7 @@
     const SCATTERED_MAZE_COUNT = 140;
     const BOARD_WIDTH = 66;
     const BOARD_DEPTH = 60;
+    const INFINITE_BOARD_SIZE = 420;
     const MAZE_SOURCE_FILES = [
       "./data/fixed4x4.json",
       "./data/varNxM.json",
@@ -1077,14 +937,14 @@
       const targetIndex = Math.floor(Math.random() * parsedSamples.length);
       const target = parsedSamples[targetIndex];
       document.getElementById("sceneSubtitle").textContent =
-        `${SCATTERED_MAZE_COUNT} mixed scattered mazes from 4 datasets · click one to promote it`;
+        `${SCATTERED_MAZE_COUNT} endlessly recycled mazes from 4 datasets · pan to explore`;
 
 
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0x030508);
       scene.fog = new THREE.FogExp2(0x030508, 0.014);
 
-      const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 160);
+      const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 220);
       const defaultCameraPosition = new THREE.Vector3(23.5, 29.5, 35.5);
       camera.position.copy(defaultCameraPosition);
 
@@ -1132,28 +992,22 @@
       keyLight.shadow.camera.bottom = -31;
       keyLight.shadow.bias = -0.0004;
       scene.add(keyLight);
+      scene.add(keyLight.target);
 
       const rimLight = new THREE.DirectionalLight(0x486a9d, 1.8);
       rimLight.position.set(-12, 7, -10);
       scene.add(rimLight);
 
-      // One continuous board: scattered mazes sit directly on this surface,
-      // rather than inside separate cards or thumbnail boxes.
+      // This oversized surface follows the orbit target while the maze field
+      // wraps around it, so neither the board nor its population has an edge.
       const board = new THREE.Mesh(
-        new THREE.BoxGeometry(BOARD_WIDTH, 0.34, BOARD_DEPTH),
+        new THREE.BoxGeometry(INFINITE_BOARD_SIZE, 0.34, INFINITE_BOARD_SIZE),
         new THREE.MeshStandardMaterial({ color: 0x0d1117, roughness: 0.91, metalness: 0.04 })
       );
       board.position.y = -0.37;
       board.receiveShadow = true;
       board.castShadow = true;
       scene.add(board);
-
-      const boardEdges = new THREE.LineSegments(
-        new THREE.EdgesGeometry(new THREE.BoxGeometry(BOARD_WIDTH, 0.35, BOARD_DEPTH)),
-        new THREE.LineBasicMaterial({ color: 0x49515d, transparent: true, opacity: 0.26 })
-      );
-      boardEdges.position.y = -0.37;
-      scene.add(boardEdges);
 
       const scatteredGroup = new THREE.Group();
       scene.add(scatteredGroup);
@@ -1349,6 +1203,26 @@
         );
       });
 
+      function recycleInfiniteField() {
+        const centreX = controls.target.x;
+        const centreZ = controls.target.z;
+        const halfWidth = BOARD_WIDTH / 2;
+        const halfDepth = BOARD_DEPTH / 2;
+
+        board.position.x = centreX;
+        board.position.z = centreZ;
+        keyLight.position.set(centreX + 8, 18, centreZ + 10);
+        keyLight.target.position.set(centreX, 0, centreZ);
+        rimLight.position.set(centreX - 12, 7, centreZ - 10);
+
+        scatteredMazes.forEach(mini => {
+          while (mini.position.x - centreX > halfWidth) mini.position.x -= BOARD_WIDTH;
+          while (mini.position.x - centreX < -halfWidth) mini.position.x += BOARD_WIDTH;
+          while (mini.position.z - centreZ > halfDepth) mini.position.z -= BOARD_DEPTH;
+          while (mini.position.z - centreZ < -halfDepth) mini.position.z += BOARD_DEPTH;
+        });
+      }
+
       const raycaster = new THREE.Raycaster();
       const pointer = new THREE.Vector2();
       let pointerDown = null;
@@ -1399,46 +1273,7 @@
         setHoveredScatter(pickScatter(event.clientX, event.clientY));
       });
 
-      const settings = { speed: 1, flicker: 0.35, paused: false };
-      const speedInput = document.getElementById("speed");
-      const flickerInput = document.getElementById("flicker");
-      const speedValue = document.getElementById("speedValue");
-      const flickerValue = document.getElementById("flickerValue");
-
-      speedInput.addEventListener("input", () => {
-        settings.speed = Number(speedInput.value);
-        speedValue.textContent = `${settings.speed.toFixed(2)}×`;
-      });
-
-      flickerInput.addEventListener("input", () => {
-        settings.flicker = Number(flickerInput.value);
-        flickerValue.textContent = `${Math.round(settings.flicker * 100)}%`;
-      });
-
-      const pauseButton = document.getElementById("pauseButton");
-      pauseButton.addEventListener("click", () => {
-        settings.paused = !settings.paused;
-        pauseButton.textContent = settings.paused ? "Resume beam" : "Pause beam";
-        pauseButton.classList.toggle("active", settings.paused);
-      });
-
-      const rotateButton = document.getElementById("rotateButton");
-      rotateButton.addEventListener("click", () => {
-        controls.autoRotate = !controls.autoRotate;
-        rotateButton.classList.toggle("active", controls.autoRotate);
-      });
-
-      document.getElementById("topButton").addEventListener("click", () => {
-        camera.position.set(0.01, 49, 0.01);
-        controls.target.set(0, 0, 0);
-        controls.update();
-      });
-
-      document.getElementById("resetButton").addEventListener("click", () => {
-        camera.position.copy(defaultCameraPosition);
-        controls.target.set(0, 0.15, 0);
-        controls.update();
-      });
+      const settings = { speed: 2.5, flicker: 0.5 };
 
       const clock = new THREE.Clock();
       let routeTime = 0;
@@ -1446,7 +1281,7 @@
       function animate() {
         const delta = Math.min(clock.getDelta(), 0.05);
         const elapsed = clock.elapsedTime;
-        if (!settings.paused) routeTime += delta * settings.speed;
+        routeTime += delta * settings.speed;
 
         const rawFlicker =
           Math.sin(elapsed * 13.0) * 0.52 +
@@ -1526,6 +1361,7 @@
         });
 
         controls.update();
+        recycleInfiniteField();
         composer.render();
       }
 
