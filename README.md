@@ -15,6 +15,234 @@
 Finetune `unsloth/gemma-4-E2B-it` on a local ASCII-maze dataset with Unsloth +
 LoRA, then export / convert / run the result.
 
+## Tasks
+
+- [x] `fixed4x4`
+- [x] `varNxN`
+- [x] `varNxM`
+- [x] `varNxM_rndSE`
+- [ ] `fixed4x4_solver`
+- [ ] Evaluation
+
+## Generated maze samples
+
+<details>
+<summary><code>fixed4x4</code> — 4 generated samples</summary>
+
+<table>
+<tr>
+<td valign="top"><strong>Sample 1</strong><pre>    A   B   C   D
+  +---+---+---+---+
+1 | S |           |
+  +   +---+---+   +
+2 |               |
+  +---+---+---+   +
+3 |           |   |
+  +---+   +   +   +
+4 |       |     E |
+  +---+---+---+---+</pre></td>
+<td valign="top"><strong>Sample 2</strong><pre>    A   B   C   D
+  +---+---+---+---+
+1 | S             |
+  +   +   +---+   +
+2 |   |       |   |
+  +   +---+   +---+
+3 |       |       |
+  +   +---+---+   +
+4 |       |     E |
+  +---+---+---+---+</pre></td>
+<td valign="top"><strong>Sample 3</strong><pre>    A   B   C   D
+  +---+---+---+---+
+1 | S             |
+  +   +---+---+   +
+2 |   |       |   |
+  +   +   +   +   +
+3 |   |   |       |
+  +   +   +---+   +
+4 |   |         E |
+  +---+---+---+---+</pre></td>
+<td valign="top"><strong>Sample 4</strong><pre>    A   B   C   D
+  +---+---+---+---+
+1 | S         |   |
+  +---+   +   +   +
+2 |       |       |
+  +   +---+---+---+
+3 |       |       |
+  +   +   +   +   +
+4 |   |         E |
+  +---+---+---+---+</pre></td>
+</tr>
+</table>
+
+</details>
+
+<details>
+<summary><code>varNxN</code> — 4 generated samples</summary>
+
+<table>
+<tr>
+<td valign="top"><strong>Sample 1</strong><pre>    A   B   C   D   E   F
+  +---+---+---+---+---+---+
+1 | S         |       |   |
+  +   +---+   +---+   +   +
+2 |   |           |   |   |
+  +   +   +---+---+   +   +
+3 |   |       |       |   |
+  +   +---+   +   +   +   +
+4 |       |   |   |   |   |
+  +   +---+   +---+   +   +
+5 |   |       |           |
+  +   +---+---+   +---+   +
+6 |           |         E |
+  +---+---+---+---+---+---+</pre></td>
+<td valign="top"><strong>Sample 2</strong><pre>    A   B   C   D   E   F
+  +---+---+---+---+---+---+
+1 | S                 |   |
+  +   +---+---+---+   +   +
+2 |                   |   |
+  +---+---+---+---+---+   +
+3 |           |           |
+  +   +---+   +   +---+---+
+4 |       |   |           |
+  +---+   +   +---+---+   +
+5 |   |   |   |       |   |
+  +   +   +   +   +   +   +
+6 |       |           | E |
+  +---+---+---+---+---+---+</pre></td>
+<td valign="top"><strong>Sample 3</strong><pre>    A   B   C   D   E   F
+  +---+---+---+---+---+---+
+1 | S |           |       |
+  +   +   +---+   +   +   +
+2 |   |   |   |   |   |   |
+  +   +   +   +   +   +   +
+3 |   |       |   |       |
+  +   +   +   +   +---+   +
+4 |   |   |   |           |
+  +   +---+---+   +---+---+
+5 |       |       |   |   |
+  +   +   +   +---+   +   +
+6 |   |   |           | E |
+  +---+---+---+---+---+---+</pre></td>
+<td valign="top"><strong>Sample 4</strong><pre>    A   B   C   D   E   F
+  +---+---+---+---+---+---+
+1 | S         |           |
+  +   +   +---+   +---+   +
+2 |   |   |   |       |   |
+  +   +   +   +---+   +   +
+3 |   |   |   |       |   |
+  +   +   +   +   +---+   +
+4 |       |       |       |
+  +   +---+---+---+   +   +
+5 |   |           |   |   |
+  +   +---+---+   +   +   +
+6 |               |     E |
+  +---+---+---+---+---+---+</pre></td>
+</tr>
+</table>
+
+</details>
+
+<details>
+<summary><code>varNxM</code> — 4 generated samples</summary>
+
+<table>
+<tr>
+<td valign="top"><strong>Sample 1</strong><pre>    A   B   C   D   E   F
+  +---+---+---+---+---+---+
+1 | S         |           |
+  +   +---+---+   +   +   +
+2 |   |           |   |   |
+  +   +---+   +---+   +---+
+3 |   |       |           |
+  +   +   +---+---+---+   +
+4 |                   | E |
+  +---+---+---+---+---+---+</pre></td>
+<td valign="top"><strong>Sample 2</strong><pre>    A   B   C   D   E   F
+  +---+---+---+---+---+---+
+1 | S             |       |
+  +   +---+---+   +   +   +
+2 |       |       |   |   |
+  +   +---+   +---+   +   +
+3 |       |   |       |   |
+  +   +   +---+   +---+   +
+4 |   |                 E |
+  +---+---+---+---+---+---+</pre></td>
+<td valign="top"><strong>Sample 3</strong><pre>    A   B   C   D   E   F
+  +---+---+---+---+---+---+
+1 | S |       |           |
+  +   +---+   +   +   +   +
+2 |   |       |   |   |   |
+  +   +   +---+   +   +   +
+3 |   |   |       |       |
+  +   +   +---+---+---+---+
+4 |                         E |
+  +---+---+---+---+---+---+</pre></td>
+<td valign="top"><strong>Sample 4</strong><pre>    A   B   C   D   E   F
+  +---+---+---+---+---+---+
+1 | S     |       |       |
+  +   +   +   +   +   +---+
+2 |   |       |   |       |
+  +   +---+---+   +---+   +
+3 |   |   |       |       |
+  +   +   +   +---+   +---+
+4 |   |           |     E |
+  +---+---+---+---+---+---+</pre></td>
+</tr>
+</table>
+
+</details>
+
+<details>
+<summary><code>varNxM_rndSE</code> — 4 generated samples</summary>
+
+<table>
+<tr>
+<td valign="top"><strong>Sample 1</strong><pre>    A   B   C   D   E   F
+  +---+---+---+---+---+---+
+1 |       |   |           |
+  +   +   +   +   +   +   +
+2 |   |   |   |   |   |   |
+  +   +   +   +   +---+   +
+3 |   |   |   |   |     S |
+  +   +   +   +   +   +---+
+4 |   |       |     E     |
+  +---+---+---+---+---+---+</pre></td>
+<td valign="top"><strong>Sample 2</strong><pre>    A   B   C   D   E   F
+  +---+---+---+---+---+---+
+1 |       |               |
+  +   +---+   +   +---+   +
+2 |   |   |   |   |       |
+  +   +   +   +   +---+   +
+3 |       |   |     E     |
+  +---+   +   +---+---+---+
+4 |       | S             |
+  +---+---+---+---+---+---+</pre></td>
+<td valign="top"><strong>Sample 3</strong><pre>    A   B   C   D   E   F
+  +---+---+---+---+---+---+
+1 |       |           |   |
+  +   +   +   +---+   +   +
+2 |   |   |   |       |   |
+  +   +   +---+   +---+   +
+3 |   |       |   | S     |
+  +   +   +   +   +   +---+
+4 | E |   |       |   |   |
+  +---+---+---+---+---+---+</pre></td>
+<td valign="top"><strong>Sample 4</strong><pre>    A   B   C   D   E   F
+  +---+---+---+---+---+---+
+1 |                   |   |
+  +---+---+---+   +   +   +
+2 |       |       |   |   |
+  +   +   +   +---+   +   +
+3 |   |   |     S     |   |
+  +   +   +---+---+---+   +
+4 |   |         E         |
+  +---+---+---+---+---+---+</pre></td>
+</tr>
+</table>
+
+</details>
+
+
 ## Repo layout
 
 ```
@@ -30,7 +258,8 @@ asciimaze/
 │   └── outputs/              # batch-generation results
 ├── varNxN/                   # variable square-size maze experiment (3x3-9x9), reuses maze/
 ├── varNxM/                   # variable rectangular maze experiment (rows != columns), reuses maze/
-└── varNxM_rndSE/             # same as varNxM but S/E are random cells, not fixed corners
+├── varNxM_rndSE/             # same as varNxM but S/E are random cells, not fixed corners
+└── fixed4x4_solver/          # Not implemented yet.
 ```
 
 Run all commands from the repo root. Path flags default into
