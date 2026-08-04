@@ -7,9 +7,9 @@
 # S/E land at two random distinct cells instead of fixed opposite corners.
 #
 # Usage:
-#   python asciimaze/gemma4_train.py  --config asciimaze/varNxM_rndSE/config.yaml --gpu 3
-#   python asciimaze/gemma4_export.py --config asciimaze/varNxM_rndSE/config.yaml --gpu 3
-#   python asciimaze/gemma4_gguf.py   --config asciimaze/varNxM_rndSE/config.yaml --gpu 3
+#   python asciimaze/gemma4_train.py  --config asciimaze/varNxM_rndSE/config.yaml --gpu 0
+#   python asciimaze/gemma4_export.py --config asciimaze/varNxM_rndSE/config.yaml --gpu 0
+#   python asciimaze/gemma4_gguf.py   --config asciimaze/varNxM_rndSE/config.yaml --gpu 0
 experiment_dir: asciimaze/varNxM_rndSE/finetune
 
 train:

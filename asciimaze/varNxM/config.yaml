@@ -7,9 +7,9 @@
 # {4,6,8}, to measure generalization to unseen sizes across two dimensions.
 #
 # Usage:
-#   python asciimaze/gemma4_train.py  --config asciimaze/varNxM/config.yaml --gpu 3
-#   python asciimaze/gemma4_export.py --config asciimaze/varNxM/config.yaml --gpu 3
-#   python asciimaze/gemma4_gguf.py   --config asciimaze/varNxM/config.yaml --gpu 3
+#   python asciimaze/gemma4_train.py  --config asciimaze/varNxM/config.yaml --gpu 0
+#   python asciimaze/gemma4_export.py --config asciimaze/varNxM/config.yaml --gpu 0
+#   python asciimaze/gemma4_gguf.py   --config asciimaze/varNxM/config.yaml --gpu 0
 experiment_dir: asciimaze/varNxM/finetune
 
 train:

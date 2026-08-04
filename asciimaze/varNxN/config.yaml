@@ -6,9 +6,9 @@
 # test uses the disjoint {4,6,8} to measure generalization to unseen sizes.
 #
 # Usage:
-#   python asciimaze/gemma4_train.py  --config asciimaze/varNxN/config.yaml --gpu 3
-#   python asciimaze/gemma4_export.py --config asciimaze/varNxN/config.yaml --gpu 3
-#   python asciimaze/gemma4_gguf.py   --config asciimaze/varNxN/config.yaml --gpu 3
+#   python asciimaze/gemma4_train.py  --config asciimaze/varNxN/config.yaml --gpu 0
+#   python asciimaze/gemma4_export.py --config asciimaze/varNxN/config.yaml --gpu 0
+#   python asciimaze/gemma4_gguf.py   --config asciimaze/varNxN/config.yaml --gpu 0
 experiment_dir: asciimaze/varNxN/finetune
 
 train:

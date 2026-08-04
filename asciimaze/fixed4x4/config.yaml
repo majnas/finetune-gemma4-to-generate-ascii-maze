@@ -16,9 +16,9 @@ experiment_dir: asciimaze/fixed4x4/finetune
 # line overrides its config value for that run.
 #
 # Usage (each script auto-loads this file via --config's own default):
-#   python asciimaze/gemma4_train.py  --gpu 3
-#   python asciimaze/gemma4_export.py --gpu 3
-#   python asciimaze/gemma4_gguf.py   --gpu 3
+#   python asciimaze/gemma4_train.py  --gpu 0
+#   python asciimaze/gemma4_export.py --gpu 0
+#   python asciimaze/gemma4_gguf.py   --gpu 0
 # Pass --config <other.yaml> to point a script at a different file/experiment
 # - that file must define experiment_dir and the section(s) that script
 # reads (see below); there's no code-level fallback for a key missing from
