@@ -311,6 +311,82 @@ CUDA_VISIBLE_DEVICES=0 ~/.unsloth/llama.cpp/llama-server \
 
 Open `http://localhost:8090`, or POST to `/v1/chat/completions` (OpenAI-compatible).
 
+## `fixed4x4_solver` phase
+
+This phase receives a different 4x4 maze in every prompt and returns its
+cell-by-cell solution in the form `S,B1,C1,D1,D2,...,E`. Run all commands
+from the repository root.
+
+Generate the 90/5/5 dataset splits:
+
+```bash
+python -m asciimaze.fixed4x4_solver.build_dataset --n 7000 --seed 1934
+```
+
+Train LoRA, export the merged model, and convert to GGUF:
+
+```bash
+python asciimaze/gemma4_train.py \
+  --config asciimaze/fixed4x4_solver/config.yaml --gpu 0
+
+python asciimaze/gemma4_export.py \
+  --config asciimaze/fixed4x4_solver/config.yaml --gpu 0
+
+python asciimaze/gemma4_gguf.py \
+  --config asciimaze/fixed4x4_solver/config.yaml --gpu 0
+```
+
+Generate and evaluate LoRA predictions across the test mazes:
+
+```bash
+python -m asciimaze.fixed4x4_solver.generate_predictions \
+  --backend native \
+  --model-path asciimaze/fixed4x4_solver/finetune/lora \
+  --output-file asciimaze/fixed4x4_solver/outputs/lora_predictions.jsonl \
+  --gpu 0
+
+python -m asciimaze.fixed4x4_solver.evaluate \
+  asciimaze/fixed4x4_solver/outputs/lora_predictions.jsonl
+```
+
+Generate and evaluate merged-model predictions:
+
+```bash
+python -m asciimaze.fixed4x4_solver.generate_predictions \
+  --backend native \
+  --model-path asciimaze/fixed4x4_solver/finetune/merged \
+  --output-file asciimaze/fixed4x4_solver/outputs/merged_predictions.jsonl \
+  --gpu 0
+
+python -m asciimaze.fixed4x4_solver.evaluate \
+  asciimaze/fixed4x4_solver/outputs/merged_predictions.jsonl
+```
+
+For GGUF evaluation, start llama.cpp in one terminal:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 ~/.unsloth/llama.cpp/llama-server \
+  -m asciimaze/fixed4x4_solver/finetune/gguf/gemma-4-E2B-it.F16.gguf \
+  -ngl 99 -c 2048 --host 127.0.0.1 --port 8090
+```
+
+Then generate and evaluate GGUF predictions from another terminal:
+
+```bash
+python -m asciimaze.fixed4x4_solver.generate_predictions \
+  --backend openai \
+  --base-url http://127.0.0.1:8090 \
+  --model local-model \
+  --output-file asciimaze/fixed4x4_solver/outputs/gguf_predictions.jsonl
+
+python -m asciimaze.fixed4x4_solver.evaluate \
+  asciimaze/fixed4x4_solver/outputs/gguf_predictions.jsonl
+```
+
+Add `--limit 100` to a `generate_predictions` command to use only the first
+100 test mazes. Unlike the older `gemma4_generate_100_samples_*` scripts, the
+solver runner sends a different maze prompt for every test record.
+
 ## 🎮 Live 3D maze gallery
 
 **[→ Open the interactive gallery](https://majnas.github.io/finetune-gemma4-to-generate-ascii-maze/)** and have fun.
